@@ -1,0 +1,193 @@
+﻿<Page
+    Loaded="Page_Loaded"
+    Unloaded="Page_Unloaded"
+    x:Class="CFD.CFDPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CFD"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    mc:Ignorable="d">
+
+    <Page.BottomAppBar>
+        <CommandBar ClosedDisplayMode="Compact">
+            <AppBarButton Icon="Save" Label="To VTK"/>
+        </CommandBar>
+    </Page.BottomAppBar>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="480"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ScrollViewer
+                Grid.Column="0"
+                VerticalScrollMode="Enabled"
+                IsVerticalScrollChainingEnabled="True"
+                VerticalScrollBarVisibility="Auto"
+                Padding="36,16,36,0"
+                FontSize="14">
+            <StackPanel Width="411" Padding="0,0,0,0" Margin="0,0,0,4">
+                <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            Margin="10"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            Width="385" Height="261">
+                    <StackPanel>
+                        <TextBlock Text="Сетка:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+
+                        <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Ширина:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="lField" Margin="26,0,0,10" Width="93" PlaceholderText="м" Value="{x:Bind Solver.L, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Высота:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="hField" Margin="33,0,0,10"  Width="93" IsEnabled="True" PlaceholderText="м" Value="{x:Bind Solver.H, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Шаг по X:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="nxField" Margin="20,0,0,10"  Width="93" IsEnabled="True" Value="{x:Bind Solver.Nx, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Шаг по Y:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="nyField" Margin="20,0,0,10"  Width="93" IsEnabled="True" Value="{x:Bind Solver.Ny, Mode=TwoWay}"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            Margin="10"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            Width="385" Height="102">
+                    <StackPanel>
+                        <TextBlock Text="Граничные условия: (не готово)" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+                        <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Re" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="reField" Margin="30,0,0,10"  Width="102" IsEnabled="False" Value="{x:Bind Solver.Re, Mode=OneWay}"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            Margin="10"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            Width="385" Height="159">
+                    <StackPanel>
+                        <TextBlock Text="Материал:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+
+                        <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Плотность:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="rhoField" Margin="130,0,0,10" Width="100" PlaceholderText="кг/м^3" Value="{x:Bind Solver.Rho, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Кинематическая вязкость:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="nuField" Margin="33,0,0,10"  Width="100" PlaceholderText="м^2/c" IsEnabled="True" Value="{x:Bind Solver.Nu, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            Margin="10"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            Width="385" Height="209">
+                    <StackPanel>
+                        <TextBlock Text="Время и сходимость:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+
+                        <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Время моделирования:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="tField" Margin="50,0,0,10" Width="100" PlaceholderText="c" Value="{x:Bind Solver.T, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Шаг по времени:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="dtField" Margin="91,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Dt, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Параметр сходимости:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="dtauField" Margin="55,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Pdtau, Mode=TwoWay}"/>
+                            </StackPanel>
+
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            HorizontalAlignment="Left" 
+                            CornerRadius="8"
+                            Margin="10"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            Width="385" Height="135">
+                    <StackPanel>
+                        <TextBlock Text="Расчет:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Width="354">
+                            <Button x:Name="solveButton" Content="Расчет" Click="solveButton_Click" IsEnabled="True" Margin="0,0,10,0" Width="160" Height="40"/>
+                            <Button x:Name="stopButton" Content="Прервать расчет" Click="stopButton_Click"  IsEnabled="True" Margin="0,0,10,0" Width="160" Height="40"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="15,15,0,5">
+                            <muxc:ProgressBar x:Name="progressBar" Width="100" HorizontalAlignment="Left" Height="5" Visibility="Collapsed"/>
+                            <TextBlock x:Name="percentOfSolution" Width="240" Margin="20,0,0,0"/>
+                        </StackPanel>
+
+
+
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="100"/>
+            </Grid.RowDefinitions>
+            <Border
+                    
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    Margin="15,25,20,15" 
+                    CornerRadius="8"
+                    BorderThickness="1"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Grid.Row="0" >
+
+                <canvas:CanvasAnimatedControl x:Name="canvas" Margin="50,200,51,200" Draw="canvas_Draw"/>
+            </Border>
+            <Border
+                            
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"                    
+                            CornerRadius="8"
+                            Margin="15,10,20,15"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Grid.Row="1">
+                <StackPanel Orientation="Vertical">
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Height="50" Margin="15,10,15,10">
+                        <TextBlock x:Name="debugInfo"  ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                    </ScrollViewer>
+
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

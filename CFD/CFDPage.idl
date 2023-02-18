@@ -1,0 +1,10 @@
+import "NavierStokes.idl";
+
+namespace CFD
+{
+    runtimeclass CFDPage : Windows.UI.Xaml.Controls.Page
+    {
+        CFDPage();
+        NavierStokes Solver;
+    }
+}
