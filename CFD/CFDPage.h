@@ -34,7 +34,8 @@ namespace winrt::CFD::implementation
         CFDPage() 
         {
             Solver(make<NavierStokes>());
-            //anvas().Paused(true);
+            Solver().Solved(false);
+
         }
         
         CFD::NavierStokes Solver() { return solver; }
@@ -52,17 +53,28 @@ namespace winrt::CFD::implementation
         CFD::NavierStokes solver{ nullptr };
         wstring debugBuffer;
         std::vector<Rect> cells;
+        event_token m_showResidual;
+
+
         int n;
         double dx;
         double dy;
         double x_scale;
         double y_scale;
-        IAsyncActionWithProgress<double> solution{ nullptr };
+        IAsyncActionWithProgress<Windows::Foundation::Collections::IVector<double>> solution{ nullptr };
     public:
+        void ReDrawMesh();
         void canvas_Draw(ICanvasAnimatedControl const& sender, CanvasAnimatedDrawEventArgs const& args);
         void Page_Loaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
         void stopButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
         void Page_Unloaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
+        void nxField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+        void nyField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+    
+        void canvas_PointerPressed(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Input::PointerRoutedEventArgs const& e);
+        void Page_SizeChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::SizeChangedEventArgs const& e);
+        void lField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+        void hField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
     };
 }
 
