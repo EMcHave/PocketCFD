@@ -1,12 +1,12 @@
+
+
 namespace CFD
 {
     [bindable]
     runtimeclass NavierStokes: Windows.UI.Xaml.Data.INotifyPropertyChanged
     {
         NavierStokes();
-        Windows.Foundation.IAsyncActionWithProgress<Windows.Foundation.Collections.IVector<Double> > Solve();
         event Windows.Foundation.EventHandler<NavierStokesEventArgs> IterationCompleted;
-
         
         Boolean Solved;
         Double Rho;
@@ -23,7 +23,9 @@ namespace CFD
         Double T;
         Double Dt;
         Double Nt{ get; };
+        Double Eps;
 
+        Double Dtau;
         Double Pdtau;
     }
 

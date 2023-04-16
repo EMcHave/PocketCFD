@@ -24,6 +24,7 @@
 #include "winrt/Microsoft.UI.Xaml.Media.h"
 #include "winrt/Microsoft.UI.Xaml.XamlTypeInfo.h"
 #include "winrt/Microsoft.Graphics.Canvas.h"
+#include "winrt/Microsoft.Graphics.Canvas.Geometry.h"
 #include "winrt/Microsoft.Graphics.Canvas.UI.h"
 #include "winrt/Microsoft.Graphics.Canvas.UI.Xaml.h"
 #include "winrt/Microsoft.Graphics.Canvas.UI.Composition.h"

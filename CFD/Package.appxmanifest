@@ -3,7 +3,7 @@
   <Identity
     Name="34da26a6-235f-466e-9f04-7f5d3f00b71c"
     Publisher="CN=mchav"
-    Version="1.0.0.0" />
+    Version="0.6.0.0" />
   <mp:PhoneIdentity PhoneProductId="34da26a6-235f-466e-9f04-7f5d3f00b71c" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
   <Properties>
     <DisplayName>CFD</DisplayName>

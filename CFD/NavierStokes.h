@@ -6,25 +6,51 @@
 
 using namespace std;
 using namespace winrt::Windows::Foundation;
+using namespace winrt::Windows::Foundation::Collections;
 
 namespace winrt::CFD::implementation
 {
+	enum class TypeOfBC
+	{
+		Wall,
+		Speed,
+		Pressure
+	};
+	enum class Boundary
+	{
+		Left,
+		Right, 
+		Top, 
+		Bottom
+	};
+	struct BoundaryCondition
+	{
+		TypeOfBC Type;
+		double Vx;
+		double Vy;
+		double P;
+	};
 	struct NavierStokes : NavierStokesT<NavierStokes>
 	{
 
-		Cell** cells;
-		Node** nodes;
+		//Cell** cells;
+		//Node** nodes;
+
+		vector<Cell*> cells;
+		vector<Node*> nodes;
 
 		NavierStokes();
 		~NavierStokes();
 
 
-		IAsyncActionWithProgress<Collections::IVector<double>> Solve();
+		IAsyncActionWithProgress<IVector<double>> Solve(map<Boundary, BoundaryCondition>, vector<Point>);
 		void SetBoundaryConditions(int);
-		void SetInitialConditions();
+		void SetInitialConditions(vector<Point>);
 		void CleanSolution();
 		double MaxVelocity(int n);
-		Node* const Nod(int i, int j);
+		double MaxPressure(int n);
+		double MinPressure(int n);
+;		Node* const Nod(int i, int j);
 		Cell* const Cel(int i, int j);
 		Node* const Nod(int i);
 		Cell* const Cel(int i);
@@ -37,42 +63,48 @@ namespace winrt::CFD::implementation
 		event_token IterationCompleted(EventHandler<CFD::NavierStokesEventArgs> const& handler);
 		void IterationCompleted(winrt::event_token const& token) noexcept;
 
-		double Rho();
-		void Rho(double);
+		double Rho() { return rho; }
+		void Rho(double value) { rho = value; }
 
-		double Nu();
+		double Nu() { return nu; }
 		void Nu(double);
 
-		double L();
+		double L() { return l; }
 		void L(double);
 
-		double H();
+		double H() { return h; }
 		void H(double);
 
-		int Nx();
+		int Nx() { return NX; }
 		void Nx(int);
 
-		int Ny();
+		int Ny() { return NY; }
 		void Ny(int);
 
 		double Dx() { return L() / (Nx() - 1); }
 		double Dy() { return H() / (Ny() - 1); }
 
-		double T();
-		void T(double);
+		double T() { return t; }
+		void T(double value) { t = value; }
 
-		int Nt();
+		int Nt() { return t / dt; }
 
 		double Dt() { return dt; }
 		void Dt(double value) { dt = value; }
 
-		double Pdtau();
-		void Pdtau(double);
+		double Pdtau() { return PRES_dtau; }
+		void Pdtau(double value) { PRES_dtau = value; }
+
+		double Dtau() { return dtau; }
+		void Dtau(double value) { dtau = value; }
 
 		double Re() { return inlet_speed * L() / Nu(); }
 
-		vector<double> ThomasAlg(vector<double>& a, vector<double>& с,
-			vector<double>& b, vector<double>& f);
+		double Eps() { return eps; }
+		void Eps(double value) { eps = value; }
+
+		void ThomasAlg(vector<double>& a, vector<double>& с,
+			vector<double>& b, vector<double>& f, vector<double>& solution);
 	private:
 		double rho;
 		double nu;
@@ -89,30 +121,30 @@ namespace winrt::CFD::implementation
 		double dt;
 		double dtau;
 		double PRES_dtau;
+		double eps;
 		double inlet_speed;
 
 		double MAX;
+		double maxXiU, maxXiV, maxXiP;
 
 		bool solved;
+
+		map<Boundary, BoundaryCondition> BCs;
 		
 		event<Windows::UI::Xaml::Data::PropertyChangedEventHandler> m_propertyChanged;
 		event<EventHandler<CFD::NavierStokesEventArgs>> m_iterationCompleted;
 
-		function<double(double, double)> leftBC;
-		function<double(double, double)> rightBC;
+		//function<double(double, double)> leftBC;
+		//function<double(double, double)> rightBC;
 
-		void TimeStep(int n, double eps);
 		void ExplicitStep(int n);
-		void XStep(vector<double>&, vector<double>&, vector<double>&, vector<double>&,
-			vector<double>&, vector<double>&, vector<double>&, vector<double>&,
-			vector<double>&, vector<double>&, int);
 		void XStep(int);
-		void YStep(vector<double>&, vector<double>&, vector<double>&, vector<double>&,
-			vector<double>&, vector<double>&, vector<double>&, vector<double>&,
-			vector<double>&, vector<double>&);
 		void YStep();
 
 		double MaxXi();
+		double MaxXiU();
+		double MaxXiV();
+		double MaxXiP();
 	};
 
 
@@ -125,6 +157,7 @@ namespace winrt::CFD::implementation
 	private:
 		double m_maximumXi{ 0.0 };
 	};
+
 }
 namespace winrt::CFD::factory_implementation
 {

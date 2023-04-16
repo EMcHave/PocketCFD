@@ -40,7 +40,8 @@ struct Node
 		v = new double[NT];
 		for (int i = 0; i < NT; i++)
 		{
-			u[i] = 0; v[i] = 0;
+			u[i] = 0; 
+			v[i] = 0;
 		}
 	}
 	~Node()

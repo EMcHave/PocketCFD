@@ -1,5 +1,7 @@
 #pragma once
 #include "Node.h"
+
+using namespace std;
 struct Cell
 {
 	int ID;
@@ -13,9 +15,11 @@ struct Cell
 	Node* n3;
 	Node* n4;
 
-	double p;
+	unique_ptr<double[]> p;
 	double p_k;
 	double xp;
+
+	bool isFreeOutlet;
 
 	Cell(Node* n1, Node* n2,
 		Node* n3, Node* n4,
@@ -23,12 +27,19 @@ struct Cell
 		double dx, double dy, double PRES_dtau)
 		:n1(n1), n2(n2), n3(n3), n4(n4),
 		ID(ID), dx(dx), dy(dy),
-		p(0), p_k(0), xp(0)
+		p_k(0), xp(0)
 	{
 		n1->vol += dx * dy / 4;
 		n2->vol += dx * dy / 4;
 		n3->vol += dx * dy / 4;
 		n4->vol += dx * dy / 4;
+
+		isFreeOutlet = false;
+
+		p = unique_ptr<double[]>(new double[NT]);
+
+		for (int i = 0; i < NT; i++)
+			p[i] = 0;
 
 		u12 = 0, u34 = 0, v14 = 0, v23 = 0;
 		u14 = 0, u23 = 0, v12 = 0, v34 = 0;
@@ -41,7 +52,7 @@ struct Cell
 	void XStepForCell(double dt, double dtau, double rho, double nu);
 	void YStepForCell(double dt, double dtau, double rho, double nu);
 	void EvaluateXp(enum IterationStep);
-	void UpdatePressure(bool IsIterationsBreak);
+	void UpdatePressure(bool IsIterationsBreak, int n);
 	void UpdateAverageVelocities();
 	double Divergence()
 	{

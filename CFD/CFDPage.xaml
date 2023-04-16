@@ -43,7 +43,7 @@
                         <TextBlock Text="Сетка:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
 
                         <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
-                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                            <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Ширина:" TextWrapping="Wrap" Height="30" />
                                 <muxc:NumberBox x:Name="lField" Margin="26,0,0,10" Width="93" PlaceholderText="м" Value="{x:Bind Solver.L, Mode=TwoWay}" ValueChanged="lField_ValueChanged"/>
                             </StackPanel>
@@ -70,16 +70,109 @@
                             Margin="10"
                             BorderThickness="1"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            Width="385" Height="102">
+                            Width="385" Height="528">
                     <StackPanel>
-                        <TextBlock Text="Граничные условия: (не готово)" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+                        <TextBlock Text="Граничные условия: " FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
                         <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Левая граница: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0" />
+                                <ComboBox x:Name="leftBC" Margin="24,0,0,0" Width="200" SelectionChanged="leftBC_SelectionChanged">
+                                    <ComboBoxItem Content="Стена"/>
+                                    <ComboBoxItem Content="Скорость"/>
+                                    <ComboBoxItem Content="Давление"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="leftSpeed" Visibility="Visible">
+                                <TextBlock Text="Скорость: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="vx, м/c" Margin="59,0,0,0" x:Name="leftSpeedXValue" ValueChanged="leftSpeedValue_ValueChanged" Width="90"/>
+                                <muxc:NumberBox PlaceholderText="vy, м/c" x:Name="leftSpeedYValue" ValueChanged="leftSpeedValue_ValueChanged" Margin="20,0,0,0" Width="90"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="leftPressure" Visibility="Collapsed">
+                                <TextBlock Text="Давление: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="P, Па" Margin="56,0,0,0" x:Name="leftPressureValue" ValueChanged="leftSpeedValue_ValueChanged" Width="90"/>
+                            </StackPanel>
+
                             <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
-                                <TextBlock Text="Re" TextWrapping="Wrap" Height="30" />
-                                <muxc:NumberBox x:Name="reField" Margin="30,0,0,10"  Width="102" IsEnabled="False" Value="{x:Bind Solver.Re, Mode=OneWay}"/>
+                                <TextBlock Text="Правая граница: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0" />
+                                <ComboBox x:Name="rightBC" Margin="15,0,0,0" Width="200" SelectionChanged="rightBC_SelectionChanged">
+                                    <ComboBoxItem Content="Стена"/>
+                                    <ComboBoxItem Content="Скорость"/>
+                                    <ComboBoxItem Content="Давление"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="rightSpeed" Visibility="Collapsed">
+                                <TextBlock Text="Скорость: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="vx, м/c" Margin="59,0,0,0" x:Name="rightSpeedXValue" ValueChanged="rightSpeedValue_ValueChanged" Width="90"/>
+                                <muxc:NumberBox PlaceholderText="vy, м/c" x:Name="rightSpeedYValue" ValueChanged="rightSpeedValue_ValueChanged" Margin="20,0,0,0" Width="90"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="rightPressure" Visibility="Visible">
+                                <TextBlock Text="Давление: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="P, Па" Margin="56,0,0,0" x:Name="rightPressureValue" ValueChanged="rightSpeedValue_ValueChanged" Width="90"/>
+                            </StackPanel>
+                            
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Верхняя граница: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0" />
+                                <ComboBox x:Name="topBC" Margin="10,0,0,0" Width="200" SelectionChanged="topBC_SelectionChanged">
+                                    <ComboBoxItem Content="Стена"/>
+                                    <ComboBoxItem Content="Скорость"/>
+                                    <ComboBoxItem Content="Давление"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="topSpeed" Visibility="Visible">
+                                <TextBlock Text="Скорость: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="vx, м/c" Margin="59,0,0,0" x:Name="topSpeedXValue" ValueChanged="topSpeedValue_ValueChanged" Width="90"/>
+                                <muxc:NumberBox PlaceholderText="vy, м/c" x:Name="topSpeedYValue" ValueChanged="topSpeedValue_ValueChanged" Margin="20,0,0,0" Width="90"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="topPressure" Visibility="Collapsed">
+                                <TextBlock Text="Давление: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="P, Па" Margin="56,0,0,0" x:Name="topPressureValue" ValueChanged="topSpeedValue_ValueChanged" Width="90"/>
+                            </StackPanel>
+                            
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Нижняя граница: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0" />
+                                <ComboBox x:Name="bottomBC" Margin="11,0,0,0" Width="200" SelectionChanged="bottomBC_SelectionChanged">
+                                    <ComboBoxItem Content="Стена"/>
+                                    <ComboBoxItem Content="Скорость"/>
+                                    <ComboBoxItem Content="Давление"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="bottomSpeed" Visibility="Visible">
+                                <TextBlock Text="Скорость: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="vx, м/c" Margin="59,0,0,0" x:Name="bottomSpeedXValue" ValueChanged="bottomSpeedValue_ValueChanged" Width="90"/>
+                                <muxc:NumberBox PlaceholderText="vy, м/c" x:Name="bottomSpeedYValue" ValueChanged="bottomSpeedValue_ValueChanged" Margin="20,0,0,0" Width="90"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" x:Name="bottomPressure" Visibility="Collapsed">
+                                <TextBlock Text="Давление: " TextWrapping="Wrap" Height="30" Margin="0,5,0,0"/>
+                                <muxc:NumberBox PlaceholderText="P, Па" Margin="56,0,0,0" x:Name="bottomPressureValue" ValueChanged="bottomSpeedValue_ValueChanged" Width="90"/>
                             </StackPanel>
 
                         </StackPanel>
+                        <TextBlock Text="Препятствия: " FontSize="16" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal" Margin="15,10,0,0">
+                                    <TextBlock Text="Узел 1" Margin="0,5,0,0"/>
+                                    <muxc:NumberBox x:Name="n1_i_Field" PlaceholderText="i" Margin="20,0,0,0"/>
+                                    <muxc:NumberBox x:Name="n1_j_Field" PlaceholderText="j" Margin="20,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="15,10,0,0">
+                                    <TextBlock Text="Узел 2" Margin="0,5,0,0"/>
+                                    <muxc:NumberBox x:Name="n2_i_Field" PlaceholderText="i" Margin="18,0,0,0"/>
+                                    <muxc:NumberBox x:Name="n2_j_Field" PlaceholderText="j" Margin="20,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button x:Name="addBoundaryButton" Margin="20,9,0,0" Width="95" Height="74" Click="addBoundaryButton_Click">
+                                <Button.Content>
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                </Button.Content>
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Препятствие добавлено"/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <Button x:Name="cleanBoundariesButton" Content="Удалить препятствия" Margin="15,10,0,0" Width="323" Click="cleanBoundariesButton_Click"/>
                     </StackPanel>
                 </Border>
                 <Border
@@ -89,18 +182,18 @@
                             Margin="10"
                             BorderThickness="1"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            Width="385" Height="159">
+                            Width="385" Height="150">
                     <StackPanel>
                         <TextBlock Text="Материал:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
 
-                        <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                        <StackPanel Orientation="Vertical" Width="354">
                             <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
                                 <TextBlock Text="Плотность:" TextWrapping="Wrap" Height="30" />
-                                <muxc:NumberBox x:Name="rhoField" Margin="130,0,0,10" Width="100" PlaceholderText="кг/м^3" Value="{x:Bind Solver.Rho, Mode=TwoWay}"/>
+                                <muxc:NumberBox x:Name="rhoField" Margin="152,0,0,10" Width="100" PlaceholderText="кг/м^3" Value="{x:Bind Solver.Rho, Mode=TwoWay}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
                                 <TextBlock Text="Кинематическая вязкость:" TextWrapping="Wrap" Height="30" />
-                                <muxc:NumberBox x:Name="nuField" Margin="33,0,0,10"  Width="100" PlaceholderText="м^2/c" IsEnabled="True" Value="{x:Bind Solver.Nu, Mode=TwoWay}"/>
+                                <muxc:NumberBox x:Name="nuField" Margin="54,0,0,10"  Width="100" PlaceholderText="м^2/c" IsEnabled="True" Value="{x:Bind Solver.Nu, Mode=TwoWay}"/>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
@@ -112,25 +205,31 @@
                             Margin="10"
                             BorderThickness="1"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            Width="385" Height="209">
+                            Width="385" Height="304">
                     <StackPanel>
                         <TextBlock Text="Время и сходимость:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
 
-                        <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
+                        <StackPanel Orientation="Vertical" Width="354">
                             <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
                                 <TextBlock Text="Время моделирования:" TextWrapping="Wrap" Height="30" />
-                                <muxc:NumberBox x:Name="tField" Margin="50,0,0,10" Width="100" PlaceholderText="c" Value="{x:Bind Solver.T, Mode=TwoWay}"/>
+                                <muxc:NumberBox x:Name="tField" Margin="66,0,0,10" Width="100" PlaceholderText="c" Value="{x:Bind Solver.T, Mode=TwoWay}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
                                 <TextBlock Text="Шаг по времени:" TextWrapping="Wrap" Height="30" />
-                                <muxc:NumberBox x:Name="dtField" Margin="91,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Dt, Mode=TwoWay}"/>
+                                <muxc:NumberBox x:Name="dtField" Margin="107,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Dt, Mode=TwoWay}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
-                                <TextBlock Text="Параметр сходимости:" TextWrapping="Wrap" Height="30" />
-                                <muxc:NumberBox x:Name="dtauField" Margin="55,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Pdtau, Mode=TwoWay}"/>
+                                <TextBlock Text="Параметр сходимости (P):" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="dtauField" Margin="51,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Pdtau, Mode=TwoWay}"/>
                             </StackPanel>
-
-
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Параметр сходимости (V):" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="vel_dtauField" Margin="51,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Dtau, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Padding="0,10,0,0">
+                                <TextBlock Text="Точность:" TextWrapping="Wrap" Height="30" />
+                                <muxc:NumberBox x:Name="epsField" Margin="154,0,0,10"  Width="100" IsEnabled="True" Value="{x:Bind Solver.Eps, Mode=TwoWay}"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -165,19 +264,51 @@
         </ScrollViewer>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="62"/>
                 <RowDefinition/>
                 <RowDefinition Height="100"/>
             </Grid.RowDefinitions>
-            <Border
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="15,25,25,0" HorizontalAlignment="Left">
+                <ComboBox x:Name="fieldComboBox" Width="230" SelectionChanged="fieldComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Cкалярное поле скоростей"/>
+                    <ComboBoxItem Content="Поле давления"/>
+                    <ComboBoxItem Content="Векторное поле скоростей"/>
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="15,25,25,0" HorizontalAlignment="Right">
+                <Button x:Name ="animationButton" Content="Визуализация" Click="animationButton_Click" HorizontalAlignment="Right" Margin="0,-5,36,0"/>
+                <ComboBox x:Name="entryPointComboBox" Width="230">
+                    <ComboBoxItem Content="Слева"/>
+                    <ComboBoxItem Content="Справа"/>
+                    <ComboBoxItem Content="Сверху"/>
+                    <ComboBoxItem Content="Снизу"/>
+                </ComboBox>
+            </StackPanel>
+                <Border
                     
+                
                     Background="{ThemeResource LayerFillColorDefaultBrush}"
-                    Margin="15,25,20,15" 
+                    Margin="15,15,20,15" 
                     CornerRadius="8"
                     BorderThickness="1"
                     x:Name="canvasBorder"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Grid.Row="0" >
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Grid.Row="1" >
 
-                <canvas:CanvasAnimatedControl x:Name="canvas" Draw="canvas_Draw" Paused="True" PointerPressed="canvas_PointerPressed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <canvas:CanvasAnimatedControl 
+                        x:Name="canvas" 
+                        Draw="canvas_Draw" 
+                        Paused="True" 
+                        PointerPressed="canvas_PointerPressed"
+                        
+                    />
+                    <canvas:CanvasControl 
+                        x:Name="static_canvas" 
+                        Draw="static_canvas_Draw"
+                        PointerMoved="static_canvas_PointerMoved" 
+                    />
+                </Grid>
+
             </Border>
             <Border
                             
@@ -185,7 +316,7 @@
                             CornerRadius="8"
                             Margin="15,10,20,15"
                             BorderThickness="1"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Grid.Row="1">
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" Grid.Row="2">
                 <StackPanel Orientation="Vertical">
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Height="50" Margin="15,10,15,10">

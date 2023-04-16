@@ -44,7 +44,8 @@ void Cell::EvaluateIntegralsForCell(double dt, double dtau, double rho, double n
 	n3->integral_v += -Fvx34 - Fvy23;
 	n4->integral_v += Fvx34 - Fvy14;
 
-	this->xp = -PRES_dtau * ((u23 - u14) / dx + (v34 - v12) / dy);
+	//this->xp = -PRES_dtau * ((u23 - u14) / dx + (v34 - v12) / dy) * !isFreeOutlet;
+	this->xp = -PRES_dtau * ((u23 - u14) / dx + (v34 - v12) / dy) * !isFreeOutlet;
 }
 
 void Cell::XStepForCell(double dt, double dtau, double rho, double nu)
@@ -140,23 +141,23 @@ void Cell::EvaluateXp(IterationStep itSt)
 		double hu14 = (n1->xu + n4->xu) / 2;
 		double hu23 = (n3->xu + n2->xu) / 2;
 
-		xp += -PRES_dtau * (hu23 - hu14) / dx;
+		xp += -PRES_dtau * (hu23 - hu14) / dx * !isFreeOutlet;
 	}
 	else if (itSt == yStep)
 	{
 		double xv12 = (n1->xv + n2->xv) / 2;
 		double xv34 = (n3->xv + n4->xv) / 2;
 
-		xp += -PRES_dtau * (xv34 - xv12) / dy;
+		xp += -PRES_dtau * (xv34 - xv12) / dy * !isFreeOutlet;
 	}
 }
 
 
 
-void Cell::UpdatePressure(bool IsIterationsBreak)
+void Cell::UpdatePressure(bool IsIterationsBreak, int n)
 {
 	if (IsIterationsBreak)
-		p = p_k;
+		p[n] = p_k;
 	else
 		p_k += xp;
 }
