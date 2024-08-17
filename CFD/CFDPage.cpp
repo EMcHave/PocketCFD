@@ -7,6 +7,7 @@
 #if __has_include("CFDPage.g.cpp")
 #include "CFDPage.g.cpp"
 #endif
+# define M_PI           3.14159265358979323846
 
 using namespace winrt;
 using namespace Windows::UI;
@@ -19,10 +20,12 @@ IAsyncAction winrt::CFD::implementation::CFDPage::solveButton_Click(IInspectable
 {
     using namespace concurrency;
 
+    PauseButton().IsEnabled(false);
     canvas().Paused(false);
     Solver().Solved(false);
     ReDrawMesh();
     canvas().Visibility(Visibility::Visible);
+    disp = Windows::UI::Core::CoreWindow::GetForCurrentThread().Dispatcher();
 
     
     progressBar().Visibility(Visibility::Visible());
@@ -47,11 +50,13 @@ IAsyncAction winrt::CFD::implementation::CFDPage::solveButton_Click(IInspectable
     
     Min = Solver().Eps();
 
+    stopButton().IsEnabled(true);
+
     solution = SolverImp()->Solve(BoundaryConditions, boundaries);
     solution.Progress([&](auto const& sender, Collections::IVector<double> progress)
         {
             progressBar().Value(100 * progress.GetAt(0));
-            percentOfSolution().Text(to_wstring((int)(100 * progress.GetAt(0))) + L" %");
+            percentOfSolution().Text(std::to_wstring((int)(100 * progress.GetAt(0))) + L" %");
             residualField().Value(progress.GetAt(4));
 
             if (itCount > 0)
@@ -62,9 +67,10 @@ IAsyncAction winrt::CFD::implementation::CFDPage::solveButton_Click(IInspectable
     int end = GetTickCount64() - begin;
     
     solving = false;
+    stopButton().IsEnabled(false);
     
     percentOfSolution().Text(L"Расчет завершен успешно");
-    debugBuffer += L"\nВремя расчета: " + to_wstring(end) + L" миллисекунд\n";
+    debugBuffer += L"\nВремя расчета: " + std::to_wstring(end) + L" миллисекунд\n";
     debugInfo().Text(debugBuffer);
     
 
@@ -73,10 +79,13 @@ IAsyncAction winrt::CFD::implementation::CFDPage::solveButton_Click(IInspectable
     n = 0;
     PrepareAnimation();
     canvas().Paused(false);
+    PauseButton().IsEnabled(true);
+    CleanButton().IsEnabled(1);
 }
 
 void winrt::CFD::implementation::CFDPage::ReDrawMesh()
 {
+    CleanButton().IsEnabled(0);
     if (!cells.empty())
         cells.clear();
 
@@ -116,8 +125,6 @@ void winrt::CFD::implementation::CFDPage::ReDrawMesh()
 
     for (Point p : boundaries)
     {
-        double dx = Solver().Dx();
-        double dy = Solver().Dy();
         auto rect = Rect(p.X*dx * x_scale, static_canvas().Height() - p.Y*dy * y_scale, dx * x_scale, dy * y_scale);
         walls.push_back(rect);
     }
@@ -125,29 +132,41 @@ void winrt::CFD::implementation::CFDPage::ReDrawMesh()
 
 void winrt::CFD::implementation::CFDPage::PrepareAnimation()
 {
+    if (Solver().Dt() < 1.0 / 60)
+        canvas().TargetElapsedTime(Windows::Foundation::TimeSpan(std::chrono::milliseconds{ 17 }));
+    else 
+        canvas().TargetElapsedTime(Windows::Foundation::TimeSpan(std::chrono::milliseconds{ (int)(Solver().Dt()*1000)}));
+
     if (!cells.empty())
         cells.clear();
-    
+    canvas().Paused(true);
     float ratio = Solver().L() / Solver().H();
     if (ratio > 1)
     {
-        canvas().Width(canvasBorder().ActualWidth() * 0.75);
-        canvas().Height(canvas().Width() / ratio);
+        canvas().Width(canvasBorder().ActualWidth());
+        canvas().Height(canvas().Width() * 0.75 / ratio);
+        height = canvas().Height();
+        width = canvas().Width() * 0.75;
+        sdvig = canvasBorder().ActualWidth() * 0.15;
     }
     else
     {
         canvas().Height(canvasBorder().ActualHeight() * 0.75);
-        canvas().Width(canvas().Height() * ratio);
+        canvas().Width(canvasBorder().ActualWidth());
+        height = canvas().Height();
+        width = canvas().Height() * ratio;
+        sdvig = (canvasBorder().ActualWidth() - width) / 2;
     }
 
     canvas().Visibility(Visibility::Visible);
     static_canvas().Visibility(Visibility::Collapsed);
 
-    height = canvas().Height();
-    width = canvas().Width();
 
-    x_scale = canvas().ActualWidth() / Solver().L();
-    y_scale = canvas().ActualHeight() / Solver().H();
+
+    
+
+    x_scale = width / Solver().L();
+    y_scale = height / Solver().H();
 
     dx = Solver().Dx();
     dy = Solver().Dy(); 
@@ -161,12 +180,36 @@ void winrt::CFD::implementation::CFDPage::PrepareAnimation()
             double x = SolverImp()->nodes[i]->x;
             double y = SolverImp()->nodes[i]->y;
 
-            auto rect = Rect((x - dx / 2) * x_scale, (y - dy / 2) * y_scale, dx * x_scale, dy * y_scale);
+            auto rect = Rect((x - dx / 2) * x_scale + sdvig, (y - dy / 2) * y_scale, dx * x_scale, dy * y_scale);
             cells.push_back(rect);
         }
         break;
     }
     case 1:
+    {
+        for (int i = 0; i < Solver().Nx() * Solver().Ny(); i++)
+        {
+            double x = SolverImp()->nodes[i]->x;
+            double y = SolverImp()->nodes[i]->y;
+
+            auto rect = Rect((x - dx / 2) * x_scale + sdvig, (y - dy / 2) * y_scale, dx * x_scale, dy * y_scale);
+            cells.push_back(rect);
+        }
+        break;
+    }
+    case 2:
+    {
+        for (int i = 0; i < Solver().Nx() * Solver().Ny(); i++)
+        {
+            double x = SolverImp()->nodes[i]->x;
+            double y = SolverImp()->nodes[i]->y;
+
+            auto rect = Rect((x - dx / 2) * x_scale + sdvig, (y - dy / 2) * y_scale, dx * x_scale, dy * y_scale);
+            cells.push_back(rect);
+        }
+        break;
+    }
+    case 4:
     {
         for (int i = 0; i < (Solver().Nx() - 1) * (Solver().Ny() - 1); i++)
         {
@@ -174,7 +217,31 @@ void winrt::CFD::implementation::CFDPage::PrepareAnimation()
             double x = SolverImp()->cells[i]->n1->x;
             double y = SolverImp()->cells[i]->n4->y;
 
-            auto rect = Rect(x * x_scale, y * y_scale, dx * x_scale, dy * y_scale);
+            auto rect = Rect(x * x_scale + sdvig, y * y_scale, dx * x_scale, dy * y_scale);
+            cells.push_back(rect);
+        }
+        break;
+    }
+    case 5:
+    {
+        for (int i = 0; i < Solver().Nx() * Solver().Ny(); i++)
+        {
+            double x = SolverImp()->nodes[i]->x;
+            double y = SolverImp()->nodes[i]->y;
+
+            auto rect = Rect((x - dx / 2) * x_scale + sdvig, (y - dy / 2) * y_scale, dx * x_scale, dy * y_scale);
+            cells.push_back(rect);
+        }
+        break;
+    }
+    case 6:
+    {
+        for (int i = 0; i < Solver().Nx() * Solver().Ny(); i++)
+        {
+            double x = SolverImp()->nodes[i]->x;
+            double y = SolverImp()->nodes[i]->y;
+
+            auto rect = Rect((x - dx / 2) * x_scale + sdvig, (y - dy / 2) * y_scale, dx * x_scale, dy * y_scale);
             cells.push_back(rect);
         }
         break;
@@ -182,6 +249,8 @@ void winrt::CFD::implementation::CFDPage::PrepareAnimation()
     default:
         break;
     }
+
+    canvas().Paused(false);
 }
 
 void winrt::CFD::implementation::CFDPage::PrepareResidualsPlot(Collections::IVector<double>& progress)
@@ -236,62 +305,206 @@ Color winrt::CFD::implementation::CFDPage::ValueColor(double value)
     return color;
 }
 
+Color winrt::CFD::implementation::CFDPage::ValueColorBessonov(double x, int IsStriped, double scale)
+{
+    // 0 < X < 1 vozvraschaet sootvetstvyuschii cvet radygi
+  //  IsStriped = 0; plavnie granici
+  //  IsStriped = 1; rezkie granici
+    if (x <= 0) x = 0.00000001;
+    else if (x >= 1 * scale) x = 0.999;
+    else x /= scale;
+    double N7 = 7; // seven rainbow colors 
+    double Y = x * (N7 - 1);
+    int J = (int)Y;
+    float3 RRR_;
+    if (IsStriped)
+        RRR_ = RainBow7[J] * 255;
+    else 
+        RRR_ = (RainBow7[J] + (RainBow7[J + 1] - RainBow7[J]) * (Y - J)) * 255;
+    return ColorHelper::FromArgb(255, (uint8_t)RRR_.x, (uint8_t)RRR_.y, (uint8_t)RRR_.z);
+}
+
+IAsyncAction winrt::CFD::implementation::CFDPage::ClearSolution()
+{
+    canvas().Paused(true);
+    PauseButton().IsEnabled(0);
+    auto result = co_await warningWindow();
+    Solver().Solved(0);
+    ReDrawMesh();
+    static_canvas().Invalidate();
+}
+
 void winrt::CFD::implementation::CFDPage::canvas_Draw(ICanvasAnimatedControl const& sender, CanvasAnimatedDrawEventArgs const& args)
 {
+    colorScaleHeight = height / 11;
     if (Solver().Solved())
     {
+
         double maxV = 0.0;
+        double minV = 0.0;
         double maxP, minP;
+        double maxFi, minFi;
         int N = 0;
         switch (field)
         {
         case 0:
         {
-            maxV = SolverImp()->MaxVelocity(n);
+            maxV = SolverImp()->MaxValue(n, Value::X_velocity) + 0.00001;
+            minV = SolverImp()->MinValue(n, Value::X_velocity);
+            double dU = maxV - minV;
             N = Solver().Nx() * Solver().Ny();
             for (int i = 0; i < N; i++)
             {
-                Color col = ValueColor(SolverImp()->nodes[i]->AbsVelocity(n) / maxV);
+                Color col = ValueColorBessonov( (SolverImp()->nodes[i]->u[n] - minV) / (maxV - minV), 0, colorScale);
                 args.DrawingSession().FillRectangle(cells[i], col);
             }
+            args.DrawingSession().DrawText(L"X-скорость, м/с", sdvig / 5, colorScaleHeight * 0.85, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU) * 100.0) / 100.0), sdvig / 5 + colorScaleHeight + 20, 2 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 6 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 3 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 5 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 4 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 4 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 5 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 3 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 6 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 2 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 7 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 1 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 8 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 0 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 9 * colorScaleHeight - 10, Colors::White());
             break;
         }
         case 1:
         {
-            maxP = SolverImp()->MaxPressure(n);
-            minP = SolverImp()->MinPressure(n);
-            N = (Solver().Nx() - 1) * (Solver().Ny() - 1);
+            maxV = SolverImp()->MaxValue(n, Value::Y_velocity) + 0.00001;
+            minV = SolverImp()->MinValue(n, Value::Y_velocity);
+            double dU = maxV - minV;
+            N = Solver().Nx() * Solver().Ny();
             for (int i = 0; i < N; i++)
             {
-                Color col = ValueColor( (SolverImp()->cells[i]->p[n] - minP) / (maxP - minP));
+                Color col = ValueColorBessonov((SolverImp()->nodes[i]->v[n] - minV) / (maxV - minV), 0, colorScale);
                 args.DrawingSession().FillRectangle(cells[i], col);
             }
+            args.DrawingSession().DrawText(L"Y-скорость, м/с", sdvig / 5, colorScaleHeight * 0.85, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU) * 100.0) / 100.0), sdvig / 5 + colorScaleHeight + 20, 2 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 6 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 3 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 5 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 4 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 4 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 5 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 3 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 6 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 2 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 7 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 1 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 8 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minV + dU * 0 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 9 * colorScaleHeight - 10, Colors::White());
             break;
         }
         case 2:
         {
-            maxV = SolverImp()->MaxVelocity(n);
+            maxV = SolverImp()->MaxValue(n, Value::Abs_velocity)+0.00001;
+            N = Solver().Nx() * Solver().Ny();
+            for (int i = 0; i < N; i++)
+            {
+                Color col = ValueColorBessonov(SolverImp()->nodes[i]->AbsVelocity(n) / maxV, 0, colorScale);
+                args.DrawingSession().FillRectangle(cells[i], col);
+            }
+            args.DrawingSession().DrawText(L"Модуль скорости, м/с",  sdvig / 5, colorScaleHeight*0.85, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 100.0) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 2 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 6 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 3 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 5 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 4 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 4 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 5 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 3 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 6 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 2 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 7 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 1 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 8 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 0 / 7 * 100.0 * colorScale) / 100.0),  sdvig / 5 + colorScaleHeight + 20, 9 * colorScaleHeight - 10, Colors::White());
+            break;
+            
+        }
+        case 3:
+        {
+            maxV = SolverImp()->MaxValue(n, Value::Abs_velocity) + 0.00001;
             N = Solver().Nx() * Solver().Ny();
             for (int i = 0; i < N; i++)
             {
                 float2 f1;
                 float2 f2;
-                Color col = ValueColor(SolverImp()->nodes[i]->AbsVelocity(n) / maxV);
+                Color col = ValueColorBessonov(SolverImp()->nodes[i]->AbsVelocity(n) / maxV, 0, colorScale);
                 double x = SolverImp()->nodes[i]->x;
                 double y = SolverImp()->nodes[i]->y;
                 double u = SolverImp()->nodes[i]->u[n];
                 double v = SolverImp()->nodes[i]->v[n];
-                f1.x = x * x_scale;
+                f1.x = x * x_scale + sdvig;
                 f1.y = y * y_scale;
-                f2.x = (x + u / maxV * SolverImp()->Dx()) * x_scale;
+                f2.x = (x + u / maxV * SolverImp()->Dx()) * x_scale + sdvig;
                 f2.y = (y - v / maxV * SolverImp()->Dy()) * y_scale;
                 args.DrawingSession().DrawLine(f1, f2, col, 2);
             }
+            args.DrawingSession().DrawText(L"Модуль скорости, м/с", sdvig / 5, colorScaleHeight * 0.85, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 100.0) / 100.0), sdvig / 5 + colorScaleHeight + 20, 2 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 6 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 3 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 5 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 4 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 4 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 5 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 3 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 6 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 2 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 7 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 1 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 8 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil(maxV * 0 / 7 * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 9 * colorScaleHeight - 10, Colors::White());
+            break;
+        }
+        case 4:
+        {
+            maxP = SolverImp()->MaxValue(n, Value::Pressure) + 0.0001;
+            minP = SolverImp()->MinValue(n, Value::Pressure);
+            double dP = maxP - minP;
+            N = (Solver().Nx() - 1) * (Solver().Ny() - 1);
+            for (int i = 0; i < N; i++)
+            {
+                Color col = ValueColorBessonov( (SolverImp()->cells[i]->p[n] - minP) / (maxP - minP), 0, colorScale);
+                args.DrawingSession().FillRectangle(cells[i], col);
+            }
+            args.DrawingSession().DrawText(L"Давление, Па", sdvig / 5, colorScaleHeight * 0.85, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP) * 100.0) / 100.0), sdvig / 5 + colorScaleHeight + 20, 2 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 6 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 3 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 5 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 4 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 4 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 5 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 3 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 6 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 2 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 7 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 1 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 8 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minP + dP * 0 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 9 * colorScaleHeight - 10, Colors::White());
+            break;
+        }
+        case 5:
+        {
+            maxFi = SolverImp()->MaxValue(n, Value::X_flux) + 0.00001;
+            minFi = SolverImp()->MinValue(n, Value::X_flux);
+            double dFi = maxFi - minFi;
+            N = Solver().Nx() * Solver().Ny();
+            for (int i = 0; i < N; i++)
+            {
+                Color col = ValueColorBessonov( (SolverImp()->nodes[i]->fi_x[n] - minFi) / (maxFi - minFi), 0, colorScale);
+                if (SolverImp()->nodes[i]->isBoundary)
+                    args.DrawingSession().FillRectangle(cells[i], Colors::Black());
+                else
+                    args.DrawingSession().FillRectangle(cells[i], col);
+            }
+            args.DrawingSession().DrawText(L"Поток через сечение, м/с", sdvig / 5, colorScaleHeight * 0.85, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi) * 100.0) / 100.0), sdvig / 5 + colorScaleHeight + 20, 2 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 6 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 3 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 5 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 4 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 4 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 5 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 3 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 6 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 2 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 7 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 1 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 8 * colorScaleHeight - 10, Colors::White());
+            args.DrawingSession().DrawText(to_hstring(std::ceil((minFi + dFi * 0 / 7) * 100.0 * colorScale) / 100.0), sdvig / 5 + colorScaleHeight + 20, 9 * colorScaleHeight - 10, Colors::White());
             break;
         }
         default:
             break;
         }
+
+        double time = std::ceil(n * Solver().Dt() * 100.0) / 100.0;
+        args.DrawingSession().DrawText(L"t = " + to_hstring(time) + L" c",sdvig/5 , 0, Colors::White());
+        
+
+        args.DrawingSession().FillRectangle( sdvig / 5, 2 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_INDIGO.x * 255, MY_INDIGO.y * 255, MY_INDIGO.z * 255));
+        args.DrawingSession().FillRectangle( sdvig / 5, 3 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_RED.x * 255, MY_RED.y * 255, MY_RED.z * 255));
+        args.DrawingSession().FillRectangle( sdvig / 5, 4 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_ORANGE.x * 255, MY_ORANGE.y * 255, MY_ORANGE.z * 255));
+        args.DrawingSession().FillRectangle( sdvig / 5, 5 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_YELLOW.x * 255, MY_YELLOW.y * 255, MY_YELLOW.z * 255));
+        args.DrawingSession().FillRectangle( sdvig / 5, 6 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_GREEN.x * 255, MY_GREEN.y * 255, MY_GREEN.z * 255));
+        args.DrawingSession().FillRectangle( sdvig / 5, 7 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_LIGHT_BLUE.x * 255, MY_LIGHT_BLUE.y * 255, MY_LIGHT_BLUE.z * 255));
+        args.DrawingSession().FillRectangle( sdvig / 5, 8 * colorScaleHeight, colorScaleHeight, colorScaleHeight, ColorHelper::FromArgb(255, MY_BLUE.x * 255, MY_BLUE.y * 255, MY_BLUE.z * 255));
+        
 
         n++;
         if (n == Solver().Nt() - 1)
@@ -299,28 +512,31 @@ void winrt::CFD::implementation::CFDPage::canvas_Draw(ICanvasAnimatedControl con
     }
     if (animating)
     {
+
         for (int i = 0; i < propants.size(); i++)
         {
-            Point p = propants[i];
-            int nod_i = (int)(propants[i].X / Solver().Dx());
-            int nod_j = (int)(propants[i].Y / Solver().Dy());
-            double x_new = propants[i].X + SolverImp()->Nod((int)(propants[i].X / Solver().Dx()), (int)(propants[i].Y / Solver().Dy()))->u[n] * Solver().Dt();
-            double y_new = propants[i].Y + SolverImp()->Nod((int)(propants[i].X / Solver().Dx()), (int)(propants[i].Y / Solver().Dy()))->v[n] * Solver().Dt();
+            double x_new, y_new, i_new, j_new;
+            if ((int)(propants[i].X / Solver().Dx()) < Solver().Nx() && (int)(propants[i].Y / Solver().Dy()) < Solver().Ny())
+            {
+                x_new = propants[i].X + SolverImp()->Nod((int)(propants[i].X / Solver().Dx()), (int)(propants[i].Y / Solver().Dy()))->u[n] * Solver().Dt();
+                y_new = propants[i].Y + SolverImp()->Nod((int)(propants[i].X / Solver().Dx()), (int)(propants[i].Y / Solver().Dy()))->v[n] * Solver().Dt();
+            }
 
-            int i_new = x_new / Solver().Dx();
-            int j_new = y_new / Solver().Dy();
+            i_new = x_new / Solver().Dx();
+            j_new = y_new / Solver().Dy();
 
             if (i_new <= Solver().Nx() && j_new <= Solver().Ny())
             {
                 propants[i].X = x_new;
                 propants[i].Y = y_new;
-                args.DrawingSession().FillCircle(x_new * x_scale, height - y_new * y_scale, max(Solver().Dy() / 2, Solver().Dx() / 2) * max(x_scale, y_scale) * 0.9, Colors::Coral());
+                args.DrawingSession().FillCircle(x_new * x_scale + sdvig, height - y_new * y_scale, max(Solver().Dy(), Solver().Dx()) * max(x_scale, y_scale) * 1.5, Colors::Coral());
             }
             else
                 propants.erase(propants.begin() + i);
         }
         if (propants.empty())
             animating = false;
+
     }
     
 }
@@ -347,15 +563,18 @@ void winrt::CFD::implementation::CFDPage::Page_Loaded(IInspectable const& sender
     rightBC().SelectedIndex(2);
     topBC().SelectedIndex(0);
     bottomBC().SelectedIndex(0);
-    fieldComboBox().SelectedIndex(0);
-    walls = vector<Rect>();
-    boundaries = vector<Point>();
+    fieldComboBox().SelectedIndex(2);
+    walls = std::vector<Rect>();
+    boundaries = std::vector<Point>();
 }
 
 
 void winrt::CFD::implementation::CFDPage::stopButton_Click(IInspectable const& sender, RoutedEventArgs const& e)
 {
     solution.Cancel();
+    stopButton().IsEnabled(false);
+    debugBuffer += L"Расчет прерван\n";
+    debugInfo().Text(debugBuffer);
 }
 
 
@@ -366,13 +585,10 @@ void winrt::CFD::implementation::CFDPage::Page_Unloaded(IInspectable const& send
 }
 
 
-fire_and_forget winrt::CFD::implementation::CFDPage::nxField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
+IAsyncAction winrt::CFD::implementation::CFDPage::nxField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
 {
     if (Solver().Solved() == true)
-    {
-        auto result = warningWindow();
-        Solver().Solved(false);
-    }
+        co_await ClearSolution();
 
     Solver().Nx((int)nxField().Value());
     ReDrawMesh();
@@ -380,13 +596,10 @@ fire_and_forget winrt::CFD::implementation::CFDPage::nxField_ValueChanged(Number
 }
 
 
-fire_and_forget winrt::CFD::implementation::CFDPage::nyField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
+IAsyncAction winrt::CFD::implementation::CFDPage::nyField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
 {
     if (Solver().Solved() == true)
-    {
-        auto result = warningWindow();
-        Solver().Solved(false);
-    }
+        co_await ClearSolution();
 
     Solver().Ny((int)nyField().Value());
     ReDrawMesh();
@@ -398,18 +611,18 @@ void winrt::CFD::implementation::CFDPage::canvas_PointerPressed(IInspectable con
 {
     auto position = e.GetCurrentPoint(canvas()).Position();
 
-    float i = std::round((position.X) / (Solver().Dx() * x_scale));
+    float i = std::round((position.X - sdvig) / (Solver().Dx() * x_scale));
     float j = std::round((position.Y - canvas().ActualHeight()) / (-Solver().Dy() * y_scale));
     if(Solver().Solved())
         switch (field)
         {
-        case 0:
+        case 2:
             if (i < Solver().Nx() && j < Solver().Ny())
-                debugInfo().Text(L"Скорость #" + to_wstring(SolverImp()->Nod(i, j)->u[n]) + L", " + to_wstring(SolverImp()->Nod(i, j)->v[n]) + L"\n");
+                debugInfo().Text(L"Скорость #" + std::to_wstring(SolverImp()->Nod(i, j)->u[n]) + L", " + std::to_wstring(SolverImp()->Nod(i, j)->v[n]) + L"\n");
             break;
-        case 1:
+        case 4:
             if(i < Solver().Nx() - 1 && j < Solver().Ny() - 1)
-                debugInfo().Text(L"Давление #" + to_wstring(SolverImp()->Cel(i, j)->p[n]) + L"\n");
+                debugInfo().Text(L"Давление #" + std::to_wstring(SolverImp()->Cel(i, j)->p[n]) + L"\n");
             break;
         default:
             break;
@@ -424,13 +637,10 @@ void winrt::CFD::implementation::CFDPage::Page_SizeChanged(IInspectable const& s
 }
 
 
-fire_and_forget winrt::CFD::implementation::CFDPage::lField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
+IAsyncAction winrt::CFD::implementation::CFDPage::lField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
 {
     if (Solver().Solved() == true)
-    {
-        auto result = warningWindow();
-        Solver().Solved(false);
-    }
+        co_await ClearSolution();
 
     Solver().L((double)lField().Value());
     ReDrawMesh();
@@ -438,13 +648,10 @@ fire_and_forget winrt::CFD::implementation::CFDPage::lField_ValueChanged(NumberB
 }
 
 
-fire_and_forget winrt::CFD::implementation::CFDPage::hField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
+IAsyncAction winrt::CFD::implementation::CFDPage::hField_ValueChanged(NumberBox const& sender, NumberBoxValueChangedEventArgs const& args)
 {
     if (Solver().Solved() == true)
-    {
-        auto result = warningWindow();
-        Solver().Solved(false);
-    }
+        co_await ClearSolution();
 
     Solver().H((double)hField().Value());
     ReDrawMesh();
@@ -620,24 +827,42 @@ void winrt::CFD::implementation::CFDPage::bottomSpeedValue_ValueChanged(NumberBo
 }
 
 
-fire_and_forget winrt::CFD::implementation::CFDPage::addBoundaryButton_Click(IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+IAsyncAction winrt::CFD::implementation::CFDPage::addBoundaryButton_Click(IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
 {
+    if (Solver().Solved() == true)
+        co_await ClearSolution();
 
-
-    if (true)
+    if (sender.as<Button>().Name() == L"addBoundaryButton")
     {
         for (int i = (int)n1_i_Field().Value(); i <= (int)n2_i_Field().Value(); i++)
             for (int j = (int)n1_j_Field().Value(); j <= (int)n2_j_Field().Value(); j++)
                 boundaries.push_back(Point(i, j));
+    }
+    if (sender.as<Button>().Name() == L"addCircleButton")
+    {
+        double x, y;
+        double r = circ_r_Field().Value();
+        double dfi = min(Solver().Dx(), Solver().Dy()) / 4 / r;
+        for (int n = 0; n <= 3; n++)
+        {
+            for (int i = 1; i <= (int)(2.1 * M_PI / dfi); i++)
+            {
+                x = r * cos(dfi * i) + Solver().Dx() * circ_i_Field().Value();
+                y = r * sin(dfi * i) + Solver().Dy() * circ_j_Field().Value();
+                boundaries.push_back(Point((int)(x / Solver().Dx()), (int)(y / Solver().Dy())));
+            }
+            r -= min(Solver().Dx(), Solver().Dy()) / 2 * n;
+        }
     }
     ReDrawMesh();
     static_canvas().Invalidate();
 }
 
 
-fire_and_forget winrt::CFD::implementation::CFDPage::cleanBoundariesButton_Click(IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+IAsyncAction winrt::CFD::implementation::CFDPage::cleanBoundariesButton_Click(IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
 {
-
+    if (Solver().Solved() == true)
+        co_await ClearSolution();
 
     boundaries.clear();
     walls.clear();
@@ -704,31 +929,65 @@ void winrt::CFD::implementation::CFDPage::animationButton_Click(winrt::Windows::
 {
     if (Solver().Solved())
     {
-        if (!propants.empty())
-            propants.clear();
+        //if (!propants.empty())
+            //propants.clear();
 
         switch (entryPointComboBox().SelectedIndex())
         {
         case 0:
-            for (int i = 0; i < Solver().Ny(); i++)
-                propants.push_back(Point(0, i * Solver().Dy()));
+            for (int i = 0; i < Solver().Ny(); i+=2)
+                propants.push_back(Point(Solver().Dx(), i * Solver().Dy()));
             break;
         case 1:
             for (int i = 0; i < Solver().Ny(); i++)
-                propants.push_back(Point(Solver().Nx() * Solver().Dx(), i * Solver().Dy()));
+                propants.push_back(Point(Solver().Nx() * Solver().Dx() - Solver().Dx(), i * Solver().Dy()));
             break;
         case 2:
             for (int i = 0; i < Solver().Nx(); i++)
-                propants.push_back(Point(i * Solver().Dx(), Solver().Ny() * Solver().Dy()));
+                propants.push_back(Point(i * Solver().Dx(), Solver().Ny() * Solver().Dy() - Solver().Dy()));
             break;
         case 3:
             for (int i = 0; i < Solver().Nx(); i++)
-                propants.push_back(Point(i * Solver().Dx(), 0));
+                propants.push_back(Point(i * Solver().Dx(), Solver().Dy()));
             break;
 
         default:
+            int N = n;
+            for (int j = 0; j < Solver().Ny(); j++)
+            {
+                debugBuffer += to_hstring(SolverImp()->Nod(Solver().Nx() - 1, j)->y) + L"\t" + to_hstring(SolverImp()->Nod(Solver().Nx() - 1, j)->u[N]) + L"\n";
+            } 
+            debugInfo().Text(debugBuffer);
             break;
         }
         animating = true;
     }
+}
+
+
+void winrt::CFD::implementation::CFDPage::PauseButton_Checked(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+{
+    canvas().Paused(true);
+}
+
+
+void winrt::CFD::implementation::CFDPage::PauseButton_Unchecked(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+{
+    canvas().Paused(false);
+}
+
+
+void winrt::CFD::implementation::CFDPage::PauseButton_Click_1(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+{
+    canvas().Paused(true);
+    PauseButton().IsEnabled(0);
+    Solver().Solved(0);
+    ReDrawMesh();
+    static_canvas().Invalidate();
+}
+
+
+void winrt::CFD::implementation::CFDPage::colorSilder_ValueChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs const& e)
+{
+    colorScale = 1 / sender.as<Slider>().Value();
 }

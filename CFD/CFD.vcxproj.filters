@@ -4,11 +4,16 @@
     <ApplicationDefinition Include="App.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="UnderConstructionPage.xaml" />
     <Page Include="CFDPage.xaml">
       <Filter>Pages</Filter>
     </Page>
     <Page Include="MainPage.xaml">
+      <Filter>Pages</Filter>
+    </Page>
+    <Page Include="ParticleDynamicsPage.xaml">
+      <Filter>Pages</Filter>
+    </Page>
+    <Page Include="SPHPage.xaml">
       <Filter>Pages</Filter>
     </Page>
   </ItemGroup>
@@ -16,8 +21,9 @@
     <Midl Include="App.idl" />
     <Midl Include="MainPage.idl" />
     <Midl Include="NavierStokes.idl">
-      <Filter>ModelCpp</Filter>
+      <Filter>Navier-Stokes</Filter>
     </Midl>
+    <Midl Include="Win2DPlotter.idl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -25,20 +31,161 @@
     <ClCompile Include="MainPage.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="Node.cpp">
-      <Filter>ModelCpp</Filter>
+      <Filter>Navier-Stokes</Filter>
     </ClCompile>
     <ClCompile Include="Cell.cpp">
-      <Filter>ModelCpp</Filter>
+      <Filter>Navier-Stokes</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Camera.cpp">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\GameClass.cpp">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\MyRenderer.cpp">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\MoveLookController.cpp">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Cube.cpp">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\CubeMesh.cpp">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\GeometricObject.cpp">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Line.cpp">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\LineMesh.cpp">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\MeshObject.cpp">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Connection.cpp">
+      <Filter>3D Tools\Logic3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Entity.cpp">
+      <Filter>3D Tools\Logic3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\LogicClass.cpp">
+      <Filter>3D Tools\Logic3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Common\BasicLoader.cpp">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Common\DDSTextureLoader.cpp">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Common\DeviceResources.cpp">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Common\PersistentState.cpp">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\Common\BasicReaderWriter.cpp">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClCompile>
+    <ClCompile Include="SPH\Solver.cpp">
+      <Filter>SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="SPH\SParticle.cpp">
+      <Filter>SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="HeighbourSearch.cpp">
+      <Filter>SPH</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Node.h">
-      <Filter>ModelCpp</Filter>
+      <Filter>Navier-Stokes</Filter>
     </ClInclude>
     <ClInclude Include="Cell.h">
-      <Filter>ModelCpp</Filter>
+      <Filter>Navier-Stokes</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Camera.h">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\ConstantBuffers.h">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\GameClass.h">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\MyRenderer.h">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\MoveLookController.h">
+      <Filter>3D Tools\Base3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Cube.h">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\GeometricObject.h">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Line.h">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\LineMesh.h">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\CubeMesh.h">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\MeshObject.h">
+      <Filter>3D Tools\Resources3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Connection.h">
+      <Filter>3D Tools\Logic3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Entity.h">
+      <Filter>3D Tools\Logic3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\LogicClass.h">
+      <Filter>3D Tools\Logic3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\BasicLoader.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\BasicMath.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\BasicShapes.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\DDSTextureLoader.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\DeviceResources.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\PersistentState.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\DirectXSample.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3D\Common\BasicReaderWriter.h">
+      <Filter>3D Tools\Common3D</Filter>
+    </ClInclude>
+    <ClInclude Include="SPH\includes.h">
+      <Filter>SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="SPH\Solver.h">
+      <Filter>SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="SPH\SParticle.h">
+      <Filter>SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="HeighbourSearch.h">
+      <Filter>SPH</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -203,22 +350,52 @@
     <Filter Include="Assets">
       <UniqueIdentifier>{e48dc53e-40b1-40cb-970a-f89935452892}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ModelCpp">
-      <UniqueIdentifier>{c7d4c892-ef8a-48bb-9c76-408967308d43}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Pages">
       <UniqueIdentifier>{c0971dc4-7d3b-41ab-b2cd-c83f98f32465}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Tools">
+      <UniqueIdentifier>{815fbeb8-7744-4be7-8b38-0be84356c014}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Tools\Base3D">
+      <UniqueIdentifier>{b6eb1b04-73a9-4575-b98d-0ffb0e3e5cb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Tools\Common3D">
+      <UniqueIdentifier>{1820215a-295b-4041-b75b-caae9d896b63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Tools\Logic3D">
+      <UniqueIdentifier>{144f3f9d-b537-448d-9ea1-874cb464242e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Tools\Resources3D">
+      <UniqueIdentifier>{21405e52-1b29-4bf0-837a-382ae56c3f49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Tools\Shaders">
+      <UniqueIdentifier>{16a09f4c-eb10-43df-9426-1cc676c494a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Navier-Stokes">
+      <UniqueIdentifier>{c7d4c892-ef8a-48bb-9c76-408967308d43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SPH">
+      <UniqueIdentifier>{6bdf804c-7e6d-42d6-9950-23f155b883dd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="PropertySheet.props" />
     <None Include="packages.config" />
     <None Include="CFD_TemporaryKey.pfx" />
+    <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CFD.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Direct3D\Content\PixelShader.hlsl">
+      <Filter>3D Tools\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Direct3D\Content\VertexShader.hlsl">
+      <Filter>3D Tools\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

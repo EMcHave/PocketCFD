@@ -1,0 +1,8 @@
+namespace CFD
+{
+    [default_interface]
+    runtimeclass SPHPage : Windows.UI.Xaml.Controls.Page
+    {
+        SPHPage();
+    }
+}

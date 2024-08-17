@@ -9,6 +9,8 @@ struct Node
 
 	double* u;
 	double* v;
+	double* fi_x;
+	double* fi_y;
 
 	double u_k;
 	double xu;
@@ -20,6 +22,9 @@ struct Node
 	double const_c;
 	double integral_u;
 	double integral_v;
+
+	
+
 
 	double aux, cux, bux, fux;
 	double avx, cvx, bvx, fvx;
@@ -38,16 +43,22 @@ struct Node
 
 		u = new double[NT];
 		v = new double[NT];
+		fi_x = new double[NT];
+		fi_y = new double[NT];
 		for (int i = 0; i < NT; i++)
 		{
 			u[i] = 0; 
 			v[i] = 0;
+			fi_x[i] = 0;
+			fi_y[i] = 0;
 		}
 	}
 	~Node()
 	{
 		delete[] u;
 		delete[] v;
+		delete[] fi_x;
+		delete[] fi_y;
 	}
 
 	void ResetNode(int n)

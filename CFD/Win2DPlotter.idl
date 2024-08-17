@@ -1,0 +1,10 @@
+namespace CFD
+{
+    [bindable]
+    [default_interface]
+    runtimeclass Win2DPlotter 
+    {
+        Win2DPlotter();
+        Int32 MyProperty;
+    }
+}

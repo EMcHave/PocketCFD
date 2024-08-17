@@ -4,7 +4,6 @@
 #include "Cell.h"
 #include "NavierStokesEventArgs.g.h"
 
-using namespace std;
 using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Foundation::Collections;
 
@@ -23,6 +22,15 @@ namespace winrt::CFD::implementation
 		Top, 
 		Bottom
 	};
+	enum class Value
+	{
+		X_velocity,
+		Y_velocity,
+		Abs_velocity,
+		Pressure,
+		X_flux,
+		Y_flux
+	};
 	struct BoundaryCondition
 	{
 		TypeOfBC Type;
@@ -36,20 +44,20 @@ namespace winrt::CFD::implementation
 		//Cell** cells;
 		//Node** nodes;
 
-		vector<Cell*> cells;
-		vector<Node*> nodes;
+		std::vector<Cell*> cells;
+		std::vector<Node*> nodes;
 
 		NavierStokes();
 		~NavierStokes();
 
 
-		IAsyncActionWithProgress<IVector<double>> Solve(map<Boundary, BoundaryCondition>, vector<Point>);
+		IAsyncActionWithProgress<IVector<double>> Solve(std::map<Boundary, BoundaryCondition>, std::vector<Point>);
 		void SetBoundaryConditions(int);
-		void SetInitialConditions(vector<Point>);
+		void SetBoundaryConditions();
+		void SetInitialConditions(std::vector<Point>);
 		void CleanSolution();
-		double MaxVelocity(int n);
-		double MaxPressure(int n);
-		double MinPressure(int n);
+		double MaxValue(int n, Value val);
+		double MinValue(int n, Value val);
 ;		Node* const Nod(int i, int j);
 		Cell* const Cel(int i, int j);
 		Node* const Nod(int i);
@@ -103,8 +111,8 @@ namespace winrt::CFD::implementation
 		double Eps() { return eps; }
 		void Eps(double value) { eps = value; }
 
-		void ThomasAlg(vector<double>& a, vector<double>& с,
-			vector<double>& b, vector<double>& f, vector<double>& solution);
+		void ThomasAlg(std::vector<double>& a, std::vector<double>& с,
+			std::vector<double>& b, std::vector<double>& f, std::vector<double>& solution);
 	private:
 		double rho;
 		double nu;
@@ -129,7 +137,7 @@ namespace winrt::CFD::implementation
 
 		bool solved;
 
-		map<Boundary, BoundaryCondition> BCs;
+		std::map<Boundary, BoundaryCondition> BCs;
 		
 		event<Windows::UI::Xaml::Data::PropertyChangedEventHandler> m_propertyChanged;
 		event<EventHandler<CFD::NavierStokesEventArgs>> m_iterationCompleted;
@@ -140,6 +148,7 @@ namespace winrt::CFD::implementation
 		void ExplicitStep(int n);
 		void XStep(int);
 		void YStep();
+		void CalculateFlux();
 
 		double MaxXi();
 		double MaxXiU();

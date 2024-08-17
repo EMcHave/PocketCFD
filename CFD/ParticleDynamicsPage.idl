@@ -1,0 +1,8 @@
+namespace CFD
+{
+    [default_interface]
+    runtimeclass ParticleDynamicsPage : Windows.UI.Xaml.Controls.Page
+    {
+        ParticleDynamicsPage();
+    }
+}

@@ -5,8 +5,39 @@
 #include <ppltasks.h>
 #include <map>
 
+#define MY_BLACK       float3(0.,0.,0.)   
+#define MY_RED         float3(0.93, 0   , 0.01)
+#define MY_LIGHT_RED   float3(1,  0.5 , 0.5)
+#define MY_ORANGE      float3(1   , 0.45, 0.21)
+#define MY_YELLOW      float3(0.9 , 0.9 , 0   )
+#define MY_LIGHT_YELLOW float3(1 , 1 , 0.8 )  
+#define MY_LIGHT_ROSE  float3(1 , 0.8 , 0.8 )  
+#define MY_DARK_YELLOW float3(0.45 , 0.45, 0   )
+#define MY_GREEN       float3(0.01, 0.98, 0.01)
+#define MY_BLUE        float3(0   , 0.1 , 1   )
+#define MY_LIGHT_BLUE  float3(0.5 , 0.75 , 1   )
+#define MY_INDIGO      float3(0.3 , 0   , 0.53)
+#define MY_VIOLET      float3(0.58, 0   , 0.83)
+#define MY_DARK_RED    float3(0.5, 0   , 0.01)
+#define MY_ROSE        float3(1., 0.  , 1.)
+#define MY_PURPLE      float3(0.6, 0  , 0.6)
+#define MY_DARK_GREEN  float3(0.01, 0.5, 0.01)
+#define MY_DARK_BLUE   float3(0   , 0.1 , 0.5   )
+#define MY_GOLD        float3(0.864 , 0.7 , 0.325 )
+#define MY_DARK_GOLD   float3(0.4,    0.3 , 0.16 )
+#define MY_SILVER      float3(0.75,0.75,0.75)
+#define MY_PEATCH      float3(1, 0.89, 0.705)
+#define MY_BRONZE      float3(0.8, 0.5, 0.2)
+#define MY_GRAY        float3(0.5,0.5,0.5) 
+#define MY_LIGHT_GRAY  float3(0.8,0.8,0.8) 
+#define MY_DARK_GRAY   float3(0.2,0.2,0.2) 
+#define MY_WHITE       float3(1.,1.,1.)
+#define MY_DARK_CHERRY float3(0.57,0.11,0.26)
+#define MY_LIGHT_CHERRY float3(0.87,0.2,0.4)
+
+
+
 using namespace winrt;
-using namespace std;
 using namespace Microsoft::Graphics::Canvas;
 using namespace Microsoft::Graphics::Canvas::Effects;
 using namespace Microsoft::Graphics::Canvas::Text;
@@ -47,25 +78,27 @@ namespace winrt::CFD::implementation
         IAsyncAction solveButton_Click(IInspectable const& sender, RoutedEventArgs const& e);
 
         Color ValueColor(double value);
-
-        
+        Color ValueColorBessonov(double x, int IsStriped, double scale);
+        IAsyncAction ClearSolution();
     
     private:
         CFD::NavierStokes solver{ nullptr };
-        wstring debugBuffer;
-        vector<Rect> cells;
-        vector<Rect> walls;
-        vector<pair<float2, float2>> vectors;
+        std::wstring debugBuffer;
+        std::vector<Rect> cells;
+        std::vector<Rect> walls;
+        std::vector<std::pair<float2, float2>> vectors;
         event_token m_showResidual;
         std::map<Boundary, BoundaryCondition> BoundaryConditions;
-        vector<Point> boundaries;
-        vector<Point> propants;
+        std::vector<Point> boundaries;
+        std::vector<Point> propants;
         BoundaryCondition left_bc, right_bc, top_bc, bottom_bc;
+        const float3 RainBow7[7] = {MY_BLUE, MY_LIGHT_BLUE, MY_GREEN, MY_YELLOW, MY_ORANGE, MY_RED, MY_INDIGO};
+        Windows::UI::Core::CoreDispatcher disp{ nullptr };
 
         Microsoft::Graphics::Canvas::Geometry::CanvasGeometry residualsPath_U{ nullptr };
         Microsoft::Graphics::Canvas::Geometry::CanvasGeometry residualsPath_V{ nullptr };
         Microsoft::Graphics::Canvas::Geometry::CanvasGeometry residualsPath_P{ nullptr };
-        vector<double> residualsU, residualsV, residualsP;
+        std::vector<double> residualsU, residualsV, residualsP;
         bool solving;
         bool animating;
         double Min;
@@ -78,8 +111,11 @@ namespace winrt::CFD::implementation
         double y_scale;
         double height;
         double width;
+        int sdvig;
+        int colorScaleHeight;
         double dr;
         double resScale;
+        double colorScale;
         IAsyncActionWithProgress<IVector<double>> solution{ nullptr };
     public:
         void ReDrawMesh();
@@ -89,13 +125,13 @@ namespace winrt::CFD::implementation
         void Page_Loaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
         void stopButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
         void Page_Unloaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
-        fire_and_forget nxField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
-        fire_and_forget nyField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+        IAsyncAction nxField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+        IAsyncAction nyField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
     
         void canvas_PointerPressed(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Input::PointerRoutedEventArgs const& e);
         void Page_SizeChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::SizeChangedEventArgs const& e);
-        fire_and_forget lField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
-        fire_and_forget hField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+        IAsyncAction lField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
+        IAsyncAction hField_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
         void leftBC_SelectionChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
         void rightBC_SelectionChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
         void topBC_SelectionChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
@@ -105,8 +141,8 @@ namespace winrt::CFD::implementation
         void topSpeedValue_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
         void bottomSpeedValue_ValueChanged(winrt::Microsoft::UI::Xaml::Controls::NumberBox const& sender, winrt::Microsoft::UI::Xaml::Controls::NumberBoxValueChangedEventArgs const& args);
         void fieldComboBox_SelectionChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Controls::SelectionChangedEventArgs const& e);
-        fire_and_forget addBoundaryButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
-        fire_and_forget cleanBoundariesButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
+        IAsyncAction addBoundaryButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
+        IAsyncAction cleanBoundariesButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
         void static_canvas_Draw(winrt::Microsoft::Graphics::Canvas::UI::Xaml::CanvasControl const& sender, winrt::Microsoft::Graphics::Canvas::UI::Xaml::CanvasDrawEventArgs const& args);
         void static_canvas_PointerMoved(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Input::PointerRoutedEventArgs const& e);
         void animationButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
@@ -120,6 +156,10 @@ namespace winrt::CFD::implementation
             dialog.DefaultButton(ContentDialogButton::Primary);
             return dialog.ShowAsync();
         }
+        void PauseButton_Checked(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
+        void PauseButton_Unchecked(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
+        void PauseButton_Click_1(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
+        void colorSilder_ValueChanged(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs const& e);
     };
 }
 

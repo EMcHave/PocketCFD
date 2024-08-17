@@ -15,8 +15,8 @@
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
-    <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.19041.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.22621.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <ItemGroup Label="ProjectConfigurations">
@@ -82,13 +82,14 @@
   <PropertyGroup Label="UserMacros">
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-    <PackageCertificateKeyFile>CFD_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <PackageCertificateThumbprint>6E4D79864BB90E5230DEF04ED44BDB711E040E67</PackageCertificateThumbprint>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -139,6 +140,29 @@
       <DependentUpon>CFDPage.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClInclude>
+    <ClInclude Include="Direct3D\Camera.h" />
+    <ClInclude Include="Direct3D\Common\BasicLoader.h" />
+    <ClInclude Include="Direct3D\Common\BasicMath.h" />
+    <ClInclude Include="Direct3D\Common\BasicReaderWriter.h" />
+    <ClInclude Include="Direct3D\Common\BasicShapes.h" />
+    <ClInclude Include="Direct3D\Common\DDSTextureLoader.h" />
+    <ClInclude Include="Direct3D\Common\DeviceResources.h" />
+    <ClInclude Include="Direct3D\Common\DirectXSample.h" />
+    <ClInclude Include="Direct3D\Common\PersistentState.h" />
+    <ClInclude Include="Direct3D\Connection.h" />
+    <ClInclude Include="Direct3D\ConstantBuffers.h" />
+    <ClInclude Include="Direct3D\Cube.h" />
+    <ClInclude Include="Direct3D\CubeMesh.h" />
+    <ClInclude Include="Direct3D\Entity.h" />
+    <ClInclude Include="Direct3D\GameClass.h" />
+    <ClInclude Include="Direct3D\GeometricObject.h" />
+    <ClInclude Include="Direct3D\Line.h" />
+    <ClInclude Include="Direct3D\LineMesh.h" />
+    <ClInclude Include="Direct3D\LogicClass.h" />
+    <ClInclude Include="Direct3D\MeshObject.h" />
+    <ClInclude Include="Direct3D\MoveLookController.h" />
+    <ClInclude Include="Direct3D\MyRenderer.h" />
+    <ClInclude Include="HeighbourSearch.h" />
     <ClInclude Include="NavierStokes.h">
       <DependentUpon>NavierStokes.idl</DependentUpon>
       <SubType>Code</SubType>
@@ -152,8 +176,19 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="UnderConstructionPage.h">
-      <DependentUpon>UnderConstructionPage.xaml</DependentUpon>
+    <ClInclude Include="ParticleDynamicsPage.h">
+      <DependentUpon>ParticleDynamicsPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClInclude>
+    <ClInclude Include="SPHPage.h">
+      <DependentUpon>SPHPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClInclude>
+    <ClInclude Include="SPH\includes.h" />
+    <ClInclude Include="SPH\Solver.h" />
+    <ClInclude Include="SPH\SParticle.h" />
+    <ClInclude Include="Win2DPlotter.h">
+      <DependentUpon>Win2DPlotter.idl</DependentUpon>
       <SubType>Code</SubType>
     </ClInclude>
   </ItemGroup>
@@ -167,7 +202,10 @@
     <Page Include="MainPage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UnderConstructionPage.xaml">
+    <Page Include="ParticleDynamicsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SPHPage.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
@@ -235,6 +273,25 @@
       <DependentUpon>CFDPage.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClCompile>
+    <ClCompile Include="Direct3D\Camera.cpp" />
+    <ClCompile Include="Direct3D\Common\BasicLoader.cpp" />
+    <ClCompile Include="Direct3D\Common\BasicReaderWriter.cpp" />
+    <ClCompile Include="Direct3D\Common\DDSTextureLoader.cpp" />
+    <ClCompile Include="Direct3D\Common\DeviceResources.cpp" />
+    <ClCompile Include="Direct3D\Common\PersistentState.cpp" />
+    <ClCompile Include="Direct3D\Connection.cpp" />
+    <ClCompile Include="Direct3D\Cube.cpp" />
+    <ClCompile Include="Direct3D\CubeMesh.cpp" />
+    <ClCompile Include="Direct3D\Entity.cpp" />
+    <ClCompile Include="Direct3D\GameClass.cpp" />
+    <ClCompile Include="Direct3D\GeometricObject.cpp" />
+    <ClCompile Include="Direct3D\Line.cpp" />
+    <ClCompile Include="Direct3D\LineMesh.cpp" />
+    <ClCompile Include="Direct3D\LogicClass.cpp" />
+    <ClCompile Include="Direct3D\MeshObject.cpp" />
+    <ClCompile Include="Direct3D\MoveLookController.cpp" />
+    <ClCompile Include="Direct3D\MyRenderer.cpp" />
+    <ClCompile Include="HeighbourSearch.cpp" />
     <ClCompile Include="NavierStokes.cpp">
       <DependentUpon>NavierStokes.idl</DependentUpon>
       <SubType>Code</SubType>
@@ -250,8 +307,18 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
-    <ClCompile Include="UnderConstructionPage.cpp">
-      <DependentUpon>UnderConstructionPage.xaml</DependentUpon>
+    <ClCompile Include="ParticleDynamicsPage.cpp">
+      <DependentUpon>ParticleDynamicsPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClCompile>
+    <ClCompile Include="SPHPage.cpp">
+      <DependentUpon>SPHPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClCompile>
+    <ClCompile Include="SPH\Solver.cpp" />
+    <ClCompile Include="SPH\SParticle.cpp" />
+    <ClCompile Include="Win2DPlotter.cpp">
+      <DependentUpon>Win2DPlotter.idl</DependentUpon>
       <SubType>Code</SubType>
     </ClCompile>
   </ItemGroup>
@@ -269,9 +336,16 @@
     <Midl Include="NavierStokes.idl">
       <SubType>Designer</SubType>
     </Midl>
-    <Midl Include="UnderConstructionPage.idl">
-      <DependentUpon>UnderConstructionPage.xaml</DependentUpon>
+    <Midl Include="ParticleDynamicsPage.idl">
+      <DependentUpon>ParticleDynamicsPage.xaml</DependentUpon>
       <SubType>Code</SubType>
+    </Midl>
+    <Midl Include="SPHPage.idl">
+      <DependentUpon>SPHPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Midl>
+    <Midl Include="Win2DPlotter.idl">
+      <SubType>Designer</SubType>
     </Midl>
   </ItemGroup>
   <ItemGroup>
@@ -284,6 +358,47 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CFD.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Package.StoreAssociation.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Direct3D\Content\PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Direct3D\Content\VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

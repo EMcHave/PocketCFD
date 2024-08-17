@@ -1,7 +1,6 @@
 #pragma once
 #include "Node.h"
 
-using namespace std;
 struct Cell
 {
 	int ID;
@@ -15,7 +14,7 @@ struct Cell
 	Node* n3;
 	Node* n4;
 
-	unique_ptr<double[]> p;
+	std::unique_ptr<double[]> p;
 	double p_k;
 	double xp;
 
@@ -36,7 +35,7 @@ struct Cell
 
 		isFreeOutlet = false;
 
-		p = unique_ptr<double[]>(new double[NT]);
+		p = std::unique_ptr<double[]>(new double[NT]);
 
 		for (int i = 0; i < NT; i++)
 			p[i] = 0;

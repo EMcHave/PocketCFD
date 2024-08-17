@@ -33,7 +33,8 @@ void winrt::CFD::implementation::MainPage::nvView_ItemInvoked(NavigationView con
     //Interop::TypeName pageTypeName2 = xaml_typename<CFD::CFDPage>();
     pageTypeName.Name = L"CFD." + unbox_value<hstring>(args.InvokedItemContainer().Tag());
     pageTypeName.Kind = Interop::TypeKind::Primitive;
-    contentFrame().Navigate(pageTypeName, nullptr);
+    //contentFrame().Navigate(pageTypeName, nullptr);
+    nvView_Navigate(unbox_value<hstring>(args.InvokedItemContainer().Tag()), Windows::UI::Xaml::Media::Animation::EntranceNavigationTransitionInfo());
 }
 
 
@@ -43,9 +44,9 @@ void winrt::CFD::implementation::MainPage::nvView_Loaded(IInspectable const& sen
     m_pages.push_back(std::make_pair<std::wstring, Windows::UI::Xaml::Interop::TypeName>
         (L"CFDPage", winrt::xaml_typename<CFD::CFDPage>()));
     m_pages.push_back(std::make_pair<std::wstring, Windows::UI::Xaml::Interop::TypeName>
-        (L"UnderConstructionPage", winrt::xaml_typename<CFD::UnderConstructionPage>()));
+        (L"SPHPage", winrt::xaml_typename<CFD::SPHPage>()));
 
-    nvView_Navigate(L"CFDPage", Windows::UI::Xaml::Media::Animation::EntranceNavigationTransitionInfo());
+    nvView_Navigate(L"SPHPage", Windows::UI::Xaml::Media::Animation::EntranceNavigationTransitionInfo());
 }
 
 
@@ -55,7 +56,7 @@ void winrt::CFD::implementation::MainPage::nvView_SelectionChanged(NavigationVie
 }
 
 void winrt::CFD::implementation::MainPage::nvView_Navigate(
-    std::wstring navItemTag,
+    hstring navItemTag,
     Windows::UI::Xaml::Media::Animation::NavigationTransitionInfo const& transitionInfo)
 {
     Windows::UI::Xaml::Interop::TypeName pageTypeName;
@@ -77,5 +78,7 @@ void winrt::CFD::implementation::MainPage::nvView_Navigate(
         contentFrame().Navigate(pageTypeName, nullptr, transitionInfo);
         if (navItemTag == L"CFDPage")
             nvView().Header(box_value(L"CFD"));
+        else if (navItemTag == L"SPHPage")
+            nvView().Header(box_value(L"SPH"));
     }
 }

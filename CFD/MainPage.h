@@ -16,7 +16,7 @@ namespace winrt::CFD::implementation
         
         void nvView_ItemInvoked(winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender, winrt::Microsoft::UI::Xaml::Controls::NavigationViewItemInvokedEventArgs const& args);
         void nvView_Loaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
-        void nvView_Navigate(std::wstring,
+        void nvView_Navigate(hstring,
             Windows::UI::Xaml::Media::Animation::NavigationTransitionInfo const& transitionInfo);
         void nvView_SelectionChanged(winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender, winrt::Microsoft::UI::Xaml::Controls::NavigationViewSelectionChangedEventArgs const& args);
     private:

@@ -24,10 +24,11 @@
             Canvas.ZIndex="0"
             SelectionChanged="nvView_SelectionChanged"
             PaneDisplayMode="Top"
+            IsSettingsVisible="False"
             >
             <muxc:NavigationView.MenuItems>
                 <muxc:NavigationViewItem Icon="Play" Content="CFD" Tag="CFDPage"/>
-                <muxc:NavigationViewItem Icon="Play" Content="Under Construction" Tag="UnderConstructionPage"/>
+                <muxc:NavigationViewItem Icon="Play" Content="SPH" Tag="SPHPage"/>
             </muxc:NavigationView.MenuItems>
             <Grid>
                 <Frame x:Name="contentFrame">

@@ -16,7 +16,7 @@ using namespace winrt::Windows::Foundation;
 namespace winrt::CFD::implementation
 {
 	NavierStokes::NavierStokes()
-		:NX(101), NY(51), l(1), h(0.5), dt(1.0/60), t(300.0/60), rho(1000), nu(pow(10, -6)), PRES_dtau(1000)
+		:NX(101), NY(51), l(1), h(0.5), dt(0.0166), t(300.0/60), rho(1000), nu(pow(10, -6)), PRES_dtau(250)
 	{
 		this->dx = l / (NX - 1);
 		this->dy = h / (NY - 1);
@@ -26,10 +26,10 @@ namespace winrt::CFD::implementation
 
 		inlet_speed = 1.0;
 
-		function<double(double, double)> BC1{
+		std::function<double(double, double)> BC1{
 			[&](double y, double t) {return inlet_speed; }
 		};
-		function<double(double, double)> BC2{
+		std::function<double(double, double)> BC2{
 		[&](double y, double t) {return inlet_speed; }
 		};
 	}
@@ -40,8 +40,7 @@ namespace winrt::CFD::implementation
 			CleanSolution();
 	}
 
-
-	IAsyncActionWithProgress<Collections::IVector<double>> NavierStokes::Solve(map<Boundary, BoundaryCondition> BCs, vector<Point> boundaries)
+	IAsyncActionWithProgress<Collections::IVector<double>> NavierStokes::Solve(std::map<Boundary, BoundaryCondition> BCs, std::vector<Point> boundaries)
 	{
 		this->BCs = BCs;
 
@@ -51,18 +50,18 @@ namespace winrt::CFD::implementation
 		Collections::IVector<double> progressInfo(winrt::single_threaded_vector<double>());
 
 		co_await concurrency::create_task([&] {SetInitialConditions(boundaries); });
-
+		
 
 		int it_counter = 0;
 
 		for (int n = 1; n < Nt(); n++)
 		{
-			SetBoundaryConditions(n);
+			///SetBoundaryConditions(n);
 
 			while (true)
 			{
 				co_await winrt::resume_background();
-
+				
 				ExplicitStep(n);
 				maxXiU = MaxXiU();
 				maxXiV = MaxXiV();
@@ -85,13 +84,13 @@ namespace winrt::CFD::implementation
 				concurrency::parallel_for(0, NY - 1, 2, [&](int j)
 				{
 					for (int i = 0; i < NX - 1; i++)
-					Cel(i, j)->XStepForCell(dt, dtau, rho, nu);
+					Cel(i, j)->XStepForCell(dt, dtau, rho, Nu());
 				});
 
 				concurrency::parallel_for(1, NY - 1, 2, [&](int j)
 				{
 					for (int i = 0; i < NX - 1; i++)
-					Cel(i, j)->XStepForCell(dt, dtau, rho, nu);
+					Cel(i, j)->XStepForCell(dt, dtau, rho, Nu());
 				});
 
 
@@ -101,12 +100,14 @@ namespace winrt::CFD::implementation
 						Nod(NX - 1, j)->aux = Nod(NX - 1, j)->cux;
 						Nod(NX - 1, j)->avx = Nod(NX - 1, j)->cvx;
 					}
+				
 				if (BCs[Boundary::Left].Type == TypeOfBC::Pressure)
 					for (int j = 0; j < NY; j++)
 					{
 						Nod(0, j)->bux = Nod(0, j)->cux;
 						Nod(0, j)->bvx = Nod(0, j)->cvx;
 					}
+				
 				XStep(n);
 
 
@@ -164,12 +165,13 @@ namespace winrt::CFD::implementation
 						Nod(NX - 1, j)->xu = Nod(NX - 2, j)->xu;
 						Nod(NX - 1, j)->xv = Nod(NX - 2, j)->xv;
 					}
-
+				
 				if (BCs[Boundary::Left].Type == TypeOfBC::Pressure)
 					for (int j = 0; j < NY; j++) {
 						Nod(0, j)->xu = Nod(1, j)->xu;
 						Nod(0, j)->xv = Nod(1, j)->xv;
 					}
+			
 
 				ALLNODES(m) { Nod(m)->UpdateVelocities(IstimeToBreak, n); }
 				ALLCELLS(m) { Cel(m)->UpdatePressure(IstimeToBreak, n); }
@@ -197,6 +199,7 @@ namespace winrt::CFD::implementation
 			progressInfo.Clear();
 			
 		}
+		CalculateFlux();
 	}
 
 	void NavierStokes::ExplicitStep(int n)
@@ -212,13 +215,13 @@ namespace winrt::CFD::implementation
 		parallel_for(0, NY - 1, 2, [&](int j)
 		{
 			for (int i = 0; i < NX - 1; i++)
-			Cel(i, j)->EvaluateIntegralsForCell(dt, dtau, rho, nu, n);
+			Cel(i, j)->EvaluateIntegralsForCell(dt, dtau, rho, Nu(), n);
 		});
 
 		parallel_for(1, NY - 1, 2, [&](int j)
 		{
 			for (int i = 0; i < NX - 1; i++)
-			Cel(i, j)->EvaluateIntegralsForCell(dt, dtau, rho, nu, n);
+			Cel(i, j)->EvaluateIntegralsForCell(dt, dtau, rho, Nu(), n);
 		});
 
 		ALLNODES(m)
@@ -231,9 +234,9 @@ namespace winrt::CFD::implementation
 	{
 		concurrency::parallel_for(1, NY - 1, [&](int j)
 		{
-			vector<double> au(NX), cu(NX), bu(NX), fu(NX);
-			vector<double> av(NX), cv(NX), bv(NX), fv(NX);
-			vector<double> hus(NX), hvs(NX);
+			std::vector<double> au(NX), cu(NX), bu(NX), fu(NX);
+			std::vector<double> av(NX), cv(NX), bv(NX), fv(NX);
+			std::vector<double> hus(NX), hvs(NX);
 
 			for (int i = 0; i < NX; i++)
 			{
@@ -266,9 +269,9 @@ namespace winrt::CFD::implementation
 	{
 		concurrency::parallel_for(1, NX - 1, [&](int i)
 		{
-			vector<double> au(NY), cu(NY), bu(NY), fu(NY);
-			vector<double> av(NY), cv(NY), bv(NY), fv(NY);
-			vector<double> xus(NY), xvs(NY);
+			std::vector<double> au(NY), cu(NY), bu(NY), fu(NY);
+			std::vector<double> av(NY), cv(NY), bv(NY), fv(NY);
+			std::vector<double> xus(NY), xvs(NY);
 
 			for (int j = NY - 1; j >= 0; j--)
 			{
@@ -290,6 +293,19 @@ namespace winrt::CFD::implementation
 			}
 		});
 		ALLCELLS(m) { Cel(m)->EvaluateXp(IterationStep::yStep); }
+	}
+
+	void NavierStokes::CalculateFlux()
+	{
+		for (int n = 0; n < Nt(); n++)
+		{
+			for (int i = 0; i < Nx(); i++)
+				for (int j = 1; j < Ny(); j++)
+					Nod(i, j)->fi_x[n] = Nod(i, j - 1)->fi_x[n] + (Nod(i, j)->u[n] + Nod(i, j - 1)->u[n]) / 2;
+			for (int j = 0; j < Ny(); j++)
+				for (int i = 1; i < Nx(); i++)
+					Nod(i, j)->fi_y[n] = Nod(i - 1, j)->fi_y[n] + (Nod(i, j)->v[n] + Nod(i - 1, j)->v[n]) / 2;
+		}
 	}
 
 	double NavierStokes::MaxXi()
@@ -423,13 +439,117 @@ namespace winrt::CFD::implementation
 		}
 	}
 
-	void NavierStokes::SetInitialConditions(vector<Point> boundaries)
+	void NavierStokes::SetBoundaryConditions()
+	{
+		switch (BCs[Boundary::Left].Type)
+		{
+		case TypeOfBC::Speed:
+		{
+			for (int j = 1; j < NY - 1; j++)
+			{
+				
+				for (int n = 0; n < Nt(); n++)
+				{
+					Nod(0, j)->u[n] = BCs[Boundary::Left].Vx;
+					Nod(0, j)->v[n] = BCs[Boundary::Left].Vy;
+				}
+			}
+			break;
+		}
+		case TypeOfBC::Pressure:
+		{
+			for (int j = 0; j < NY - 1; j++)
+				for (int n = 0; n < Nt(); n++)
+					Cel(0, j)->p[n] = BCs[Boundary::Left].P;
+			break;
+		}
+		default:
+			break;
+		}
+
+		switch (BCs[Boundary::Right].Type)
+		{
+		case TypeOfBC::Speed:
+		{
+			for (int j = 1; j < NY - 1; j++)
+			{
+				for (int n = 0; n < Nt(); n++)
+				{
+					Nod(NX - 1, j)->u[n] = BCs[Boundary::Right].Vx;
+					Nod(NX - 1, j)->v[n] = BCs[Boundary::Right].Vy;
+				}
+			}
+			break;
+		}
+		case TypeOfBC::Pressure:
+		{
+			for (int j = 0; j < NY - 1; j++)
+				for (int n = 0; n < Nt(); n++)
+					Cel(NX - 2, j)->p[n] = BCs[Boundary::Right].P;
+			break;
+		}
+		default:
+			break;
+		}
+
+		switch (BCs[Boundary::Top].Type)
+		{
+		case TypeOfBC::Speed:
+		{
+			for (int i = 1; i < NX - 1; i++)
+			{
+				for (int n = 0; n < Nt(); n++)
+				{
+					Nod(i, NY - 1)->u[n] = BCs[Boundary::Top].Vx;
+					Nod(i, NY - 1)->v[n] = BCs[Boundary::Top].Vy;
+				}
+			}
+			break;
+		}
+		case TypeOfBC::Pressure:
+		{
+			for (int i = 0; i < NX - 1; i++)
+				for (int n = 0; n < Nt(); n++)
+					Cel(i, NY - 2)->p[n] = BCs[Boundary::Top].P;
+			break;
+		}
+		default:
+			break;
+		}
+
+		switch (BCs[Boundary::Bottom].Type)
+		{
+		case TypeOfBC::Speed:
+		{
+			for (int i = 1; i < NX - 1; i++)
+			{
+				for (int n = 0; n < Nt(); n++)
+				{
+					Nod(i, 0)->u[n] = BCs[Boundary::Bottom].Vx;
+					Nod(i, 0)->v[n] = BCs[Boundary::Bottom].Vy;
+				}
+			}
+			break;
+		}
+		case TypeOfBC::Pressure:
+		{
+			for (int i = 0; i < NX - 1; i++)
+				for (int n = 0; n < Nt(); n++)
+					Cel(i, 0)->p[n] = BCs[Boundary::Bottom].P;
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	void NavierStokes::SetInitialConditions(std::vector<Point> boundaries)
 	{		
 		if (!cells.empty() && !nodes.empty())
 			CleanSolution();
 
-		cells = vector<Cell*>((NX - 1) * (NY - 1), nullptr);
-		nodes = vector<Node*>(NX * NY, nullptr);
+		cells = std::vector<Cell*>((NX - 1) * (NY - 1), nullptr);
+		nodes = std::vector<Node*>(NX * NY, nullptr);
 
 		int m = 0;
 		for (int j = NY - 1; j >= 0; j--)
@@ -443,7 +563,12 @@ namespace winrt::CFD::implementation
 					Nod(i, j), Nod(i + 1, j),
 					Nod(i + 1, j + 1), Nod(i, j + 1),
 					m, this->Nt(), dx, dy, PRES_dtau);
-		SetBoundaryConditions(0);
+
+
+
+		//SetBoundaryConditions(0);
+		SetBoundaryConditions();
+
 
 		/////////// Границы сверху и снизу ///////////
 		for (int i = 0; i < NX; i++)
@@ -493,9 +618,17 @@ namespace winrt::CFD::implementation
 				Cel(i, 0)->p_k = Cel(i, 0)->p[0];
 			}
 
-
 		for (auto node : boundaries)
+		{
 			Nod((int)node.X, (int)node.Y)->isBoundary = true;
+			for (int n = 0; n < Nt(); n++)
+			{
+				Nod((int)node.X, (int)node.Y)->u[n] = 0;
+				Nod((int)node.X, (int)node.Y)->u_k = 0;
+				Nod((int)node.X, (int)node.Y)->v[n] = 0;
+				Nod((int)node.X, (int)node.Y)->u_k = 0;
+			}
+		}
 	}
 
 	void NavierStokes::CleanSolution()
@@ -523,33 +656,84 @@ namespace winrt::CFD::implementation
 		nodes.clear();
 	}
 
-	double NavierStokes::MaxVelocity(int n)
+	double NavierStokes::MaxValue(int n, Value val)
 	{
 		double max = 0;
-
-		for (int m = 0; m < NX * NY; m++)
-			if (nodes[m]->AbsVelocity(n) > max)
-				max = nodes[m]->AbsVelocity(n);
+		switch (val)
+		{
+		case Value::X_velocity:
+		{
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->u[n] > max)
+					max = nodes[m]->u[n];
+			break;
+		}
+		case Value::Y_velocity:
+		{
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->v[n] > max)
+					max = nodes[m]->v[n];
+			break;
+		}
+		case Value::Abs_velocity:
+		{
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->AbsVelocity(n) > max)
+					max = nodes[m]->AbsVelocity(n);
+			break;
+		}
+		case Value::Pressure:
+			for (int m = 0; m < (NX - 1) * (NY - 1); m++)
+				if (cells[m]->p[n] > max)
+					max = cells[m]->p[n];
+			break;
+		case Value::X_flux:
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->fi_x[n] > max)
+					max = nodes[m]->fi_x[n];
+			break;
+		}
 		return max;
 	}
 
-	double NavierStokes::MaxPressure(int n)
+	double NavierStokes::MinValue(int n, Value val)
 	{
-		double max = 0;
+		double min;
+		switch (val)
+		{
+		case Value::X_velocity:
+		{
+			min = nodes[0]->u[n];
 
-		for (int m = 0; m < (NX - 1) * (NY - 1); m++)
-			if (cells[m]->p[n] > max)
-				max = cells[m]->p[n];
-		return max;
-	}
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->u[n] < min)
+					min = nodes[m]->u[n];
+			break;
+		}
+		case Value::Y_velocity:
+		{
+			min = nodes[0]->v[n];
 
-	double NavierStokes::MinPressure(int n)
-	{
-		double min = cells[0]->p[n];
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->v[n] < min)
+					min = nodes[m]->v[n];
+			break;
+		}
+		case Value::Pressure:
+			min = cells[0]->p[n];
 
-		for (int m = 0; m < (NX - 1) * (NY - 1); m++)
-			if (cells[m]->p[n] < min)
-				min = cells[m]->p[n];
+			for (int m = 0; m < (NX - 1) * (NY - 1); m++)
+				if (cells[m]->p[n] < min)
+					min = cells[m]->p[n];
+			break;
+		case Value::X_flux:
+			min = nodes[0]->fi_x[n];
+
+			for (int m = 0; m < NX * NY; m++)
+				if (nodes[m]->fi_x[n] < min)
+					min = nodes[m]->fi_x[n];
+			break;
+		}
 		return min;
 	}
 
@@ -628,8 +812,8 @@ namespace winrt::CFD::implementation
 		dy = h / (NY - 1);
 	}
 
-	void NavierStokes::ThomasAlg(vector<double>& a, vector<double>& c,
-		vector<double>& b, vector<double>& f, vector<double>& solution)
+	void NavierStokes::ThomasAlg(std::vector<double>& a, std::vector<double>& c,
+		std::vector<double>& b, std::vector<double>& f, std::vector<double>& solution)
 	{
 		int size = a.size();
 		double* delta = new double[size];

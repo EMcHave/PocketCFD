@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-#include "UnderConstructionPage.g.h"
+#include "BlankPage.g.h"
 
 namespace winrt::CFD::implementation
 {
-    struct UnderConstructionPage : UnderConstructionPageT<UnderConstructionPage>
+    struct BlankPage : BlankPageT<BlankPage>
     {
-        UnderConstructionPage() 
+        BlankPage() 
         {
             // Xaml objects should not call InitializeComponent during construction.
             // See https://github.com/microsoft/cppwinrt/tree/master/nuget#initializecomponent
@@ -15,13 +15,13 @@ namespace winrt::CFD::implementation
         int32_t MyProperty();
         void MyProperty(int32_t value);
 
-    
+        void ClickHandler(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args);
     };
 }
 
 namespace winrt::CFD::factory_implementation
 {
-    struct UnderConstructionPage : UnderConstructionPageT<UnderConstructionPage, implementation::UnderConstructionPage>
+    struct BlankPage : BlankPageT<BlankPage, implementation::BlankPage>
     {
     };
 }

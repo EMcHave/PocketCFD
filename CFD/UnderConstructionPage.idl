@@ -1,9 +1,0 @@
-namespace CFD
-{
-    [default_interface]
-    runtimeclass UnderConstructionPage : Windows.UI.Xaml.Controls.Page
-    {
-        UnderConstructionPage();
-        Int32 MyProperty;
-    }
-}

@@ -70,7 +70,7 @@
                             Margin="10"
                             BorderThickness="1"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            Width="385" Height="528">
+                            Width="385" Height="610">
                     <StackPanel>
                         <TextBlock Text="Граничные условия: " FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
                         <StackPanel Margin="0,10,0,0" Orientation="Vertical" Width="354">
@@ -151,17 +151,37 @@
                         <StackPanel Orientation="Horizontal">
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal" Margin="15,10,0,0">
-                                    <TextBlock Text="Узел 1" Margin="0,5,0,0"/>
+                                    <TextBlock Text="Узел 1:" Margin="0,5,0,0"/>
                                     <muxc:NumberBox x:Name="n1_i_Field" PlaceholderText="i" Margin="20,0,0,0"/>
                                     <muxc:NumberBox x:Name="n1_j_Field" PlaceholderText="j" Margin="20,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="15,10,0,0">
-                                    <TextBlock Text="Узел 2" Margin="0,5,0,0"/>
+                                    <TextBlock Text="Узел 2:" Margin="0,5,0,0"/>
                                     <muxc:NumberBox x:Name="n2_i_Field" PlaceholderText="i" Margin="18,0,0,0"/>
                                     <muxc:NumberBox x:Name="n2_j_Field" PlaceholderText="j" Margin="20,0,0,0"/>
                                 </StackPanel>
+
                             </StackPanel>
+                            
                             <Button x:Name="addBoundaryButton" Margin="20,9,0,0" Width="95" Height="74" Click="addBoundaryButton_Click">
+                                <Button.Content>
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
+                                </Button.Content>
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Препятствие добавлено"/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="15,10,0,0">
+                            <TextBlock Text="Окружность:" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Height="32">
+                            <muxc:NumberBox x:Name="circ_i_Field" PlaceholderText="i" Margin="15,0,0,0"/>
+                            <muxc:NumberBox x:Name="circ_j_Field" PlaceholderText="j" Margin="10,0,0,0"/>
+                            <muxc:NumberBox x:Name="circ_r_Field" PlaceholderText="r, м" Margin="10,0,0,0"/>
+                            <Button x:Name="addCircleButton" Margin="15,0,0,0" Click="addBoundaryButton_Click" Width="95">
                                 <Button.Content>
                                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" />
                                 </Button.Content>
@@ -245,7 +265,7 @@
                         <TextBlock Text="Расчет:" FontSize="18" Style="{ ThemeResource BodyTextBlockStyle}" Margin="15,10,0,0"/>
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal" Width="354">
                             <Button x:Name="solveButton" Content="Расчет" Click="solveButton_Click" IsEnabled="True" Margin="0,0,10,0" Width="160" Height="40"/>
-                            <Button x:Name="stopButton" Content="Прервать расчет" Click="stopButton_Click"  IsEnabled="True" Margin="0,0,10,0" Width="160" Height="40"/>
+                            <Button x:Name="stopButton" Content="Прервать расчет" Click="stopButton_Click"  IsEnabled="False" Margin="0,0,10,0" Width="160" Height="40"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="15,15,0,5">
                             <muxc:ProgressBar x:Name="progressBar" Width="100" HorizontalAlignment="Left" Height="5" Visibility="Collapsed"/>
@@ -269,20 +289,52 @@
                 <RowDefinition Height="100"/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="15,25,25,0" HorizontalAlignment="Left">
-                <ComboBox x:Name="fieldComboBox" Width="230" SelectionChanged="fieldComboBox_SelectionChanged">
+                <Button x:Name="CleanButton"  Margin="0,-5,0,0" Width="66" IsEnabled="False">
+                    <Button.Content>
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" HorizontalAlignment="Right" Width="20" />
+                    </Button.Content>
+                    <Button.Flyout>
+                        <Flyout>
+                            <StackPanel>
+                                <TextBlock Style="{ThemeResource BaseTextBlockStyle}" Text="Решение будет очищено. Желаете продолжить?" Margin="0,0,0,12" />
+                                <Button Width="100" Click="PauseButton_Click_1" Content="Очистить" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+                <ToggleButton x:Name="PauseButton" Margin="20,-5,0,0" Width="66" Checked="PauseButton_Checked" Unchecked="PauseButton_Unchecked" IsEnabled="False">
+                    <ToggleButton.Content>
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE769;" HorizontalAlignment="Right" Width="20" />
+                    </ToggleButton.Content>
+                </ToggleButton>
+ 
+                <ComboBox x:Name="fieldComboBox" Width="230" SelectionChanged="fieldComboBox_SelectionChanged" Margin="20,0,0,0">
+                    <ComboBoxItem Content="Поле X-скоростей"/>
+                    <ComboBoxItem Content="Поле Y-скоростей"/>
                     <ComboBoxItem Content="Cкалярное поле скоростей"/>
-                    <ComboBoxItem Content="Поле давления"/>
                     <ComboBoxItem Content="Векторное поле скоростей"/>
+                    <ComboBoxItem Content="Поле давления"/>
+                    <ComboBoxItem Content="Линии тока U"/>
                 </ComboBox>
+
+
+                <TextBlock Text="Цвет: " Margin="20,7,0,0"/>
+                <Slider x:Name="colorSilder" Width="150" StepFrequency="0.1" Minimum="1" Maximum="5" Margin="15,2,0,0" ValueChanged="colorSilder_ValueChanged"/>
+
             </StackPanel>
             <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="15,25,25,0" HorizontalAlignment="Right">
-                <Button x:Name ="animationButton" Content="Визуализация" Click="animationButton_Click" HorizontalAlignment="Right" Margin="0,-5,36,0"/>
-                <ComboBox x:Name="entryPointComboBox" Width="230">
+                <TextBlock Text="Пропант:" Margin="0,5,20,0" />
+                <ComboBox x:Name="entryPointComboBox" Width="150" PlaceholderText="Вход пропанта">
                     <ComboBoxItem Content="Слева"/>
                     <ComboBoxItem Content="Справа"/>
                     <ComboBoxItem Content="Сверху"/>
                     <ComboBoxItem Content="Снизу"/>
                 </ComboBox>
+                <Button x:Name ="animationButton" Click="animationButton_Click" HorizontalAlignment="Right" Margin="20,-5,0,0" Width="66">
+                    <Button.Content>
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72A;" />
+                    </Button.Content>
+                </Button>
             </StackPanel>
                 <Border
                     
@@ -299,8 +351,7 @@
                         x:Name="canvas" 
                         Draw="canvas_Draw" 
                         Paused="True" 
-                        PointerPressed="canvas_PointerPressed"
-                        
+                        PointerPressed="canvas_PointerPressed"  
                     />
                     <canvas:CanvasControl 
                         x:Name="static_canvas" 
@@ -320,7 +371,7 @@
                 <StackPanel Orientation="Vertical">
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Height="50" Margin="15,10,15,10">
-                        <TextBlock x:Name="debugInfo"  ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                        <TextBox x:Name="debugInfo" ScrollViewer.VerticalScrollBarVisibility="Visible" AcceptsReturn="True"/>
                     </ScrollViewer>
 
                 </StackPanel>
